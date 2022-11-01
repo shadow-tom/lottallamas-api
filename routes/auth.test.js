@@ -1,5 +1,6 @@
 const request = require("supertest");
 const app = require("../server.js");
+const jwt = require('jsonwebtoken');
 
 const wallet = {
 	address: '1FBuCHMw5e5yTNKbf1eJq1bXZjoGaXeqwV',
@@ -58,8 +59,9 @@ describe('PUT /api/auth/validate-wallet', () => {
 			.set('Accept', 'application/json')
 			.send({ address, signature, message })
 			.then((response) => {
-				expect(response.statusCode).toBe(200);
-				expect(JSON.parse(response.text).data).toBe('Valid Message');
+				const token = jwt.decode(JSON.parse(response.text).token);
+				expect(response.statusCode).toBe(200);			
+				expect(token["token"]).toBeTruthy();
 			})
 	});
 });
