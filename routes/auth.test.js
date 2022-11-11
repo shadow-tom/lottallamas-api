@@ -1,10 +1,11 @@
 const request = require("supertest");
 const app = require("../server.js");
+const jwt = require('jsonwebtoken');
 
 const wallet = {
 	address: '1FBuCHMw5e5yTNKbf1eJq1bXZjoGaXeqwV',
 	message: 'The man who stole the world',
-	signature: 'IHcdszz688dGiPOP82v3nMQ3UQu6pdMPOV4tQV9Ok3jcaQo5e49rkUtxcd51SY7opxjawcI955FmoPajtnCTDpQ='
+	signature: 'IKsPcXMdQtIQtu2qjV34rtiwzv7uxo7eZp923u6/61iFJR7EzzeSBWdlp8OyjP3Ywk/8Kr4PvCLtrt0Z2MsXSiA='
 }
 
 describe('PUT /api/auth/validate-wallet', () => {
@@ -58,8 +59,9 @@ describe('PUT /api/auth/validate-wallet', () => {
 			.set('Accept', 'application/json')
 			.send({ address, signature, message })
 			.then((response) => {
-				expect(response.statusCode).toBe(200);
-				expect(JSON.parse(response.text).data).toBe('Valid Message');
+				const token = jwt.decode(JSON.parse(response.text).token);
+				expect(response.statusCode).toBe(200);			
+				expect(token["address"]).toBe(address);
 			})
 	});
 });
