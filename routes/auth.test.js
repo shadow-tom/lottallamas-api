@@ -1,6 +1,6 @@
-const request = require("supertest");
-const app = require("../server.js");
-const jwt = require('jsonwebtoken');
+import request from 'supertest'
+import app from '../server.js'
+import jwt from 'jsonwebtoken'
 
 const wallet = {
 	address: '1FBuCHMw5e5yTNKbf1eJq1bXZjoGaXeqwV',

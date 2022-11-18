@@ -1,9 +1,10 @@
-const express = require('express')
+import express from 'express';
 const router = express.Router()
-const jwt = require('jsonwebtoken');
-const auth = require('../middleware/auth');
+import jwt from 'jsonwebtoken'
+import auth from '../middleware/auth.js'
 
-const { Address, Message } = require('bitcore-lib');
+import pkg from 'bitcore-lib';
+const { Address, Message } = pkg;
 
 router.put('/validate-wallet', (req, res) => {
 	const { address, signature, message } = req.body;
@@ -31,6 +32,6 @@ router.put('/validate-wallet', (req, res) => {
 
 router.get('/feed', auth, (req, res) => {
 	res.send({ data: 'FEED' })
-})
+});
 
-module.exports = router;
+export default router;

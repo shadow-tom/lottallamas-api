@@ -1,7 +1,8 @@
-const express = require('express')
+import express from 'express';
+import cors from 'cors';
 const app = express()
-const cors = require('cors');
-const auth = require("./routes/auth");
+
+import auth from './routes/auth.js';
 
 const port = 3100
 
@@ -19,4 +20,4 @@ if (process.env.NODE_ENV !== 'test') {
 	})
 }
 
-module.exports = app;
+export default app;
