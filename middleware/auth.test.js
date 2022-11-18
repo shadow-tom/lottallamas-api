@@ -1,5 +1,6 @@
-const auth = require("./auth");
-const jwt = require('jsonwebtoken');
+import auth from "./auth.js"
+import jwt from 'jsonwebtoken'
+import { jest } from '@jest/globals';
 
 const generateToken = () => {
 	return jwt.sign({ address: 'bar' }, 'shh')

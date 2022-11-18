@@ -1,6 +1,6 @@
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken';
 
-function auth (req, res, next) {
+export default function auth (req, res, next) {
 	if (!req.headers) {
 		return res.status(401).send({ error: 'Missing headers' })
 	}
@@ -24,5 +24,3 @@ function auth (req, res, next) {
 
 	next();
 }
-
-module.exports = auth;
