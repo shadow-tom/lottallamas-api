@@ -1,21 +1,13 @@
 import express from 'express';
 const router = express.Router()
 import jwt from 'jsonwebtoken'
-import auth from '../middleware/auth.js'
+import verifyWalletBodyParams from '../middleware/body.js'
 
 import pkg from 'bitcore-lib';
-const { Address, Message } = pkg;
+const { Message } = pkg;
 
-router.put('/validate-wallet', (req, res) => {
+router.put('/validate-wallet', verifyWalletBodyParams, (req, res) => {
 	const { address, signature, message } = req.body;
-
-	if (!req.body || !address || !signature || !message) {
-		res.status(404).send({ error: 'Missing params' })
-	}
-
-	if (!Address.isValid(address)) {
-		res.status(404).send({ error: 'Invalid address'})
-	}
 
 	try {
 		const verified = new Message(message).verify(address, signature);

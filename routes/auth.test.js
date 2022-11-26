@@ -16,7 +16,7 @@ describe('PUT /api/auth/validate-wallet', () => {
 			.set('Accept', 'application/json')
 			.send({ address,  signature })
 			.then((response) => {
-				expect(response.statusCode).toBe(404);
+				expect(response.statusCode).toBe(401);
 				expect(JSON.parse(response.text).error).toBe('Missing params');
 			})
 	});
@@ -27,7 +27,7 @@ describe('PUT /api/auth/validate-wallet', () => {
 			.set('Accept', 'application/json')
 			.send({ address: 'Fake123',  signature, message })
 			.then((response) => {
-				expect(response.statusCode).toBe(404);
+				expect(response.statusCode).toBe(401);
 				expect(JSON.parse(response.text).error).toBe('Invalid address');
 			})
 	});
