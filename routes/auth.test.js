@@ -1,6 +1,7 @@
-import request from 'supertest'
 import app from '../server.js'
+import request from 'supertest'
 import jwt from 'jsonwebtoken'
+import { test } from '@jest/globals';
 
 const wallet = {
 	address: '1FBuCHMw5e5yTNKbf1eJq1bXZjoGaXeqwV',
@@ -10,8 +11,8 @@ const wallet = {
 
 describe('PUT /api/auth/validate-wallet', () => {
 	const { address, message, signature } = wallet;
-	test('errors if missing param', () => {
-		return request(app)
+	test('errors if missing param', async () => {
+		await request(app)
 			.put('/api/auth/validate-wallet')
 			.set('Accept', 'application/json')
 			.send({ address,  signature })
@@ -21,8 +22,8 @@ describe('PUT /api/auth/validate-wallet', () => {
 			})
 	});
 
-	test('errors if invalid address', () => {
-		return request(app)
+	test('errors if invalid address', async () => {
+		await request(app)
 			.put('/api/auth/validate-wallet')
 			.set('Accept', 'application/json')
 			.send({ address: 'Fake123',  signature, message })
@@ -32,8 +33,8 @@ describe('PUT /api/auth/validate-wallet', () => {
 			})
 	});
 
-	test('errors if invalid signature', () => {
-		return request(app)
+	test('errors if invalid signature', async () => {
+		await request(app)
 			.put('/api/auth/validate-wallet')
 			.set('Accept', 'application/json')
 			.send({ address,  signature: 'Fake123', message })
@@ -42,8 +43,8 @@ describe('PUT /api/auth/validate-wallet', () => {
 			})
 	});
 
-	test('errors if message is wrong', () => {
-		return request(app)
+	test('errors if message is wrong', async () => {
+		await request(app)
 			.put('/api/auth/validate-wallet')
 			.set('Accept', 'application/json')
 			.send({ address, signature, message: 'Incorrect Message' })
@@ -53,8 +54,8 @@ describe('PUT /api/auth/validate-wallet', () => {
 			})
 	});
 
-	test('succeeds if correct params', () => {
-		return request(app)
+	test('succeeds if correct params', async () => {
+		await request(app)
 			.put('/api/auth/validate-wallet')
 			.set('Accept', 'application/json')
 			.send({ address, signature, message })
