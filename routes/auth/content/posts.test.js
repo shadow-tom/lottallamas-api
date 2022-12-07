@@ -2,7 +2,7 @@
 import request from 'supertest'
 import { test } from '@jest/globals';
 
-describe('GET /api/auth/content', () => {
+describe('GET /api/auth/content/posts', () => {
 	test('errors if missing param', () => {
 		expect.anything();
 		// return request(app)
