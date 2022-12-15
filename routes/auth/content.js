@@ -3,38 +3,48 @@ const router = express.Router()
 import auth from '../../middleware/auth.js'
 import db from '../../../models/models/index.js'
 import Sequelize from 'sequelize';
+import { validate as uuidValidate } from 'uuid';
 
-// GET all content that pertains to tokens within your wallet
+// GET Content
 router.get('/', auth, async (req, res) => {
-	const tokens = req.assets ? req.assets : [];
-
-	const content = await db.Content.findAll({ 
-		where: {
-			token: {
-				[Sequelize.Op.or]: tokens
+	try {
+		const content = await db.Content.findAll({ 
+			where: {
+				token: {
+					[Sequelize.Op.in]: req.assets
+				}
 			}
-		}
-	});
-
-	res.status(200).send({ content })
-})
-
-// GET content posts that pertain to a contentId
-router.get('/:contentId', auth, async (req, res) => {
-	const { contentId } = req.params;
-
-	if (!contentId) {
-		return res.status(401).send({ error: 'No content ID' })
+		});
+		res.status(200).send({ content })
+	} catch (error) {
+		res.status(500).send({ error })
 	}
-
-	const posts = await db.Content.findByPk(contentId, {
-		include: ['Posts'],
-	});
-
-	res.status(200).send({ posts })
 })
 
-// PUT Create content topic
+// GET Content by contentId
+router.get('/:contentId', auth, async (req, res) => {
+	try {
+		const { contentId } = req.params;
+	
+		if (!uuidValidate(contentId)) {
+			return res.status(400).send({ error: 'Content ID malformed' })
+		}
+	
+		const content = await db.Content.findByPk(contentId, {
+			include: ['Posts'],
+		});
+	
+		if(!req.assets.includes(content.token)) { 
+			return res.status(401).send({ error: 'Token not available in wallet' })
+		}
+	
+		res.status(200).send({ content })
+	} catch(error) {
+		res.status(500).send({ error })
+	}
+})
+
+// POST Create Content
 router.post('/', auth, async (req, res) => {
 	const tokens = req.assets ? req.assets : [];
 	const { title, description, isPublic, token } = req.body
@@ -44,21 +54,22 @@ router.post('/', auth, async (req, res) => {
 	}
 
 	try {
-		const content = await db.Content.create({
-			walletId: req.address,
-			title,
-			description,
-			isPublic,
-			token
+		const [content, created] = await db.Content.findOrCreate({
+			where: { walletId: req.address },
+			defaults: {
+				walletId: req.address,
+				title,
+				description,
+				isPublic,
+				token
+			}
 		});
+
+		if (!created) { return res.status(401).send({ error:'Token must be unique' })}
 	
 		res.status(200).send({ content })
 	} catch (error) {
-		if (error.name === 'SequelizeUniqueConstraintError') {
-			res.status(401).send({ error: error.errors[0].message })
-		} else {
-			res.status(500).send({ error })
-		}
+		res.status(500).send({ error })
 	}
 })
 

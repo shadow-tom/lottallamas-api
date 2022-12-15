@@ -25,7 +25,7 @@ async function getWalletBalance(address) {
 	})
 }
 
-router.put('/validate-wallet', verifyWalletBodyParams, async (req, res) => {
+router.post('/validate-wallet', verifyWalletBodyParams, async (req, res) => {
 	try {
 		const { address, signature, message } = req.body;
 		const verified = new Message(message).verify(address, signature);
@@ -42,17 +42,15 @@ router.put('/validate-wallet', verifyWalletBodyParams, async (req, res) => {
 	}
 });
 
-// TODO: Evaluate flow of this endpoint
 router.post('/create-account', auth, async (req, res) => {
 	try {
 		const account = await db.Wallet.create({
-			id: req.headers.address,
-			nickName: 'Tombo'
+			id: req.address,
+			nickName: req.body.nickName
 		})
 
 		res.status(200).send({ account })
 	} catch (error) {
-		console.log(error);
 		res.status(500).send({ error });
 	}
 })

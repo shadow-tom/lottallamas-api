@@ -17,7 +17,7 @@ export default function auth (req, res, next) {
 			return res.status(401).send({ error: 'Address mismatch' })
 		}
 
-		req.assets = decoded.assets;
+		req.assets = decoded.assets ? decoded.assets : [];
 		req.address = decoded.address;
 
 	} catch (error) {

@@ -16,3 +16,7 @@ To make an API that uses wallet signatures and tokens contained within a wallet 
 2. The token is decoded(presenting existing array of tokens contained in that wallet).
 3. The token found on the content model(`accessToken`) is compared to wallet contaminates
 4. Assuming access token is a match with a token contained in the wallet, display content/post/comments, etc.
+
+### Developers Notes
+* Developed on Node v16.13.0
+* To be used in conjunction with models repo
