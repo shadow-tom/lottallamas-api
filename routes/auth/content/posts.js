@@ -29,7 +29,7 @@ router.get('/:postId', auth, async (req, res) => {
 router.post('/', auth, async (req, res) => {
 	const { message, contentId } = req.body
 
-	if(!contentId) { return res.status(401).send({ error: 'Missing contentId' }) }
+	if(!contentId) { return res.status(401).send({ error: 'Missing contentId or malformed' }) }
 	if(!message) { return res.status(401).send({ error: 'Missing message' }) }
 
 	const contentRecord = await db.Content.findByPk(contentId);
@@ -39,13 +39,32 @@ router.post('/', auth, async (req, res) => {
 	}
 
 	try {
-		const content = await db.Post.create({
+		const content = await contentRecord.createPost({
 			message,
 			walletId: req.address,
 			contentId,
 		});
 		res.status(200).send({ content })
 	} catch (error) {
+		res.status(500).send({ error })
+	}
+})
+
+// PUT Update endpoint
+router.put('/:postId', auth, async (req, res) => {
+	if(!req.body.message) { return res.status(401).send({ error: 'Missing message' }) }
+	try {
+		const [row, content] = await db.Post.update({
+			message: req.body.message
+		}, {
+			where: {
+				id: req.params.postId,
+				walletId: req.address
+			},
+			returning: true
+		})
+		res.status(200).send({ content })
+	} catch(error) {
 		res.status(500).send({ error })
 	}
 })

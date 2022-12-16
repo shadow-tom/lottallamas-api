@@ -5,13 +5,20 @@ import { test } from '@jest/globals';
 import db from '../../models/models/index.js'
 
 const wallet = {
-	address: '1FBuCHMw5e5yTNKbf1eJq1bXZjoGaXeqwV',
+	address: '19h8nvZWqzpZnEufu611ZG6uZ5jYN1tytn',
 	message: 'The man who stole the world',
-	signature: 'IKsPcXMdQtIQtu2qjV34rtiwzv7uxo7eZp923u6/61iFJR7EzzeSBWdlp8OyjP3Ywk/8Kr4PvCLtrt0Z2MsXSiA=',
+	signature: 'INtqdSdgpwnvLLDJzQlWPxl5JjreJsoSk1NCIsWr5Q1kJM7N0aOgdfwl0C+e8EzWzbhgs8mUnNeDMPCtnm2YCj0=',
 	nickName: 'Jimi'
 }
 
+const existingWallet = {
+	address: '1FBuCHMw5e5yTNKbf1eJq1bXZjoGaXeqwV',
+	message: 'The man who stole the world',
+	signature: 'IFAPT9+R/2bli2xFXerJMCcsk+UpiBLrXwCgKQOtrVwnJ97AIv+zmxnr+szfIjNeUSp/uEyTWpozusJhoK5LjF8=',
+}
+
 const { address, message, signature, nickName } = wallet;
+const { existingAddress, existingMessage, existingSignature } = existingWallet;
 
 describe('POST - Login (Address, Message, Signature)', () => {
 	test('errors if missing param', async () => {
@@ -76,6 +83,28 @@ describe('POST - Create account', () => {
 			where: { id: wallet.address }
 		})
 	});
+
+	// test('401 - Account exists', async () => {
+	// 	const { res } = await request(app)
+	// 	.post('/api/auth/validate-wallet')
+	// 	.set('Accept', 'application/json')
+	// 	.send({ existingAddress, existingMessage, existingSignature })
+	// 	.then((record) => {
+	// 		return record;
+	// 	})
+
+	// 	const token = JSON.parse(res.text).token;
+
+	// 	await request(app)
+	// 		.post('/api/auth/create-account')
+	// 		.set('Accept', 'application/json')
+	// 		.set({'Authorization': token, 'Address': address })
+	// 		.send({ nickName })
+	// 		.then((response) => {
+	// 			expect(response.statusCode).toBe(401);
+	// 			expect(JSON.parse(response.text).error).toBe('Account exists');
+	// 		})
+	// })
 
 	test('succeeds if proper token is present', async () => {
 		const { res } = await request(app)

@@ -68,10 +68,11 @@ describe('GET - Singular content record', () => {
 	})
 
 	test('returns 401 - Token not available in wallet', async ()=> {
-		const content = await db.Content.findAll();
+		const content = await db.Content.findOne({ where: { walletId: testWallet1.address }});
+
 		const token2 = await getToken(testWallet2);
 		await request(app)
-			.get(`/api/auth/content/${content[0].id}`)
+			.get(`/api/auth/content/${content.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token2, 'Address': testWallet2.address })
 			.then((response) => {
@@ -81,12 +82,13 @@ describe('GET - Singular content record', () => {
 	})
 
 	test('200 - Success', async () => {
-		const content = await db.Content.findAll();
+		const content1 = await db.Content.findOne({ where: { walletId: testWallet1.address }});
+		const content2 = await db.Content.findOne({ where: { walletId: testWallet2.address }});
 		const token1 = await getToken(testWallet1);
 		const token2 = await getToken(testWallet2);
 
 		await request(app)
-			.get(`/api/auth/content/${content[0].id}`)
+			.get(`/api/auth/content/${content1.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token1, 'Address': testWallet1.address })
 			.then((response) => {
@@ -95,7 +97,7 @@ describe('GET - Singular content record', () => {
 			})
 
 		await request(app)
-			.get(`/api/auth/content/${content[1].id}`)
+			.get(`/api/auth/content/${content2.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token2, 'Address': testWallet2.address })
 			.then((response) => {
@@ -105,8 +107,13 @@ describe('GET - Singular content record', () => {
 	});
 });
 
-// TODO: Provide more coverage on the actual persistance of the record
 describe('POST - Create a content record', () => {
+	afterAll(async() => {
+		await db.Content.destroy({
+			where: { title: 'Removable' }
+		})
+	});
+
 	test('401 - Token not available in wallet', async () => {
 		const token1 = await getToken(testWallet1);
 		const body = {
@@ -127,7 +134,7 @@ describe('POST - Create a content record', () => {
 			})
 	})
 
-	test('401 - Token must be unique', async () => {
+	test('401 - Token not available in wallet', async () => {
 		const token1 = await getToken(testWallet1);
 		const body = {
 			walletId: testWallet1.address,
@@ -143,7 +150,96 @@ describe('POST - Create a content record', () => {
 			.send(body)
 			.then((response) => {
 				expect(response.statusCode).toBe(401);
-				expect(JSON.parse(response.text).error).toBe('Token must be unique')
+				expect(JSON.parse(response.text).error).toBe('Token not available in wallet')
+			})
+	})
+
+	test('401 - Token not available in wallet', async () => {
+		const token1 = await getToken(testWallet1);
+		const body = {
+			walletId: testWallet1.address,
+			title: 'New test record',
+			description: 'test description',
+			isPublic: false,
+			token: 'LLAMAS.test2'
+		}
+		await request(app)
+			.post('/api/auth/content/')
+			.set('Accept', 'application/json')
+			.set({'Authorization': token1, 'Address': testWallet1.address })
+			.send(body)
+			.then((response) => {
+				expect(response.statusCode).toBe(401);
+				expect(JSON.parse(response.text).error).toBe('Token not available in wallet')
+			})
+	})
+
+	test('200 - Success', async () => {
+		const token1 = await getToken(testWallet1);
+		const body = {
+			walletId: testWallet1.address,
+			title: 'Removable',
+			description: 'test description',
+			isPublic: false,
+			token: 'LLAMAS.test3'
+		}
+		await request(app)
+			.post('/api/auth/content/')
+			.set('Accept', 'application/json')
+			.set({'Authorization': token1, 'Address': testWallet1.address })
+			.send(body)
+			.then((response) => {
+				expect(response.statusCode).toBe(200);
+				expect(response.body.content.token).toBe('LLAMAS.test3');
+			})
+	})
+})
+
+describe('PUT - Update a content record', () => {
+	afterAll(async() => {
+		await db.Content.update({
+			title: 'Content Test#1',
+			description: 'Content#1'
+		} ,{
+			where: { title: 'test title' }
+		})
+	});
+
+	test('401 - Missing title', async () => {
+		const token1 = await getToken(testWallet1);
+		const content = await db.Content.findOne({ where: { walletId: testWallet1.address }})
+		const body = {
+			description: 'test description',
+			isPublic: false,
+		}
+		await request(app)
+			.put(`/api/auth/content/${content.id}`)
+			.set('Accept', 'application/json')
+			.set({'Authorization': token1, 'Address': testWallet1.address })
+			.send(body)
+			.then((response) => {
+				expect(response.statusCode).toBe(401);
+				expect(JSON.parse(response.text).error).toBe('Missing title')
+			})
+	})
+
+	test('200 - Success', async () => {
+		const token1 = await getToken(testWallet1);
+		const content = await db.Content.findOne({ where: { walletId: testWallet1.address }})
+
+		const body = {
+			title: 'test title',
+			description: 'test description',
+			isPublic: false,
+		}
+		await request(app)
+			.put(`/api/auth/content/${content.id}`)
+			.set('Accept', 'application/json')
+			.set({'Authorization': token1, 'Address': testWallet1.address })
+			.send(body)
+			.then((response) => {
+				expect(response.statusCode).toBe(200);
+				expect(response.body.content[0].title).toBe('test title');
 			})
 	})
 })

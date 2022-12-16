@@ -46,26 +46,56 @@ router.get('/:contentId', auth, async (req, res) => {
 
 // POST Create Content
 router.post('/', auth, async (req, res) => {
-	const tokens = req.assets ? req.assets : [];
 	const { title, description, isPublic, token } = req.body
-
-	if(!tokens.includes(token)) { 
+	// Determine what assets are in the db that belong to your walletId
+	const tokensObjsInUse = await db.Content.findAll({ attributes: ['token'], where: { walletId: req.address } })
+	// Map through and return array of tokens
+	const tokensInUse = tokensObjsInUse.map((objs) => objs.token);
+	// Filter empty strings
+	const availableInWallet = req.assets.filter((token) => !tokensInUse.includes(token) ? token : false)
+	// See if that token is in your wallet
+	if(!availableInWallet.includes(token)) { 
 		return res.status(401).send({ error: 'Token not available in wallet' })
 	}
 
 	try {
-		const [content, created] = await db.Content.findOrCreate({
-			where: { walletId: req.address },
-			defaults: {
-				walletId: req.address,
+		// Determine if the token exists at all in the db
+		const tokenInDb = await db.Content.findOne({ where: { token }})
+		// Handle uniqueness
+		if (tokenInDb) { return res.status(401).send({ error: 'Token must be unique' }) }
+
+		const content = await db.Content.create({
+			walletId: req.address,
+			title,
+			description,
+			isPublic,
+			token
+		});
+	
+		res.status(200).send({ content })
+	} catch (error) {
+		res.status(500).send({ error })
+	}
+})
+
+router.put('/:contentId', auth, async (req, res) => {
+	const contentId = req.params.contentId;
+	const { title, description, isPublic } = req.body
+
+	if (!title) { return res.status(401).send({ error: 'Missing title' }) }
+
+	try {
+		const [row, content] = await db.Content.update({
 				title,
 				description,
 				isPublic,
-				token
-			}
+			}, {
+			where: {
+				id: contentId,
+				walletId: req.address
+			},
+			returning: true
 		});
-
-		if (!created) { return res.status(401).send({ error:'Token must be unique' })}
 	
 		res.status(200).send({ content })
 	} catch (error) {

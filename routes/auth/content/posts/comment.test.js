@@ -54,10 +54,10 @@ describe('POST /api/auth/content/posts/comments/:postId', () => {
 	});
 
 	test('401 - Token not available in wallet', async () => {
-		const posts = await db.Post.findAll();
 		const token = await getToken(testWallet2);
+		const post = await db.Post.findOne({ where: { walletId: testWallet1.address }});
 		return request(app)
-			.post(`/api/auth/content/posts/comments/${posts[0].id}`)
+			.post(`/api/auth/content/posts/comments/${post.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet2.address })
 			.then((response) => {
@@ -67,12 +67,13 @@ describe('POST /api/auth/content/posts/comments/:postId', () => {
 	});
 
 	test('401 - No comment present', async () => {
-		const posts = await db.Post.findAll();
 		const token = await getToken(testWallet1);
+		const post = await db.Post.findOne({ where: { walletId: testWallet1.address }});
 		return request(app)
-			.post(`/api/auth/content/posts/comments/${posts[0].id}`)
+			.post(`/api/auth/content/posts/comments/${post.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
+			.send({ comment: null })
 			.then((response) => {
 				expect(response.statusCode).toBe(401);
 				expect(JSON.parse(response.text).error).toBe('No comment present');
@@ -80,10 +81,10 @@ describe('POST /api/auth/content/posts/comments/:postId', () => {
 	});
 
 	test('200 - Successfully adds comment record', async () => {
-		const posts = await db.Post.findAll();
 		const token = await getToken(testWallet1);
+		const post = await db.Post.findOne({ where: { walletId: testWallet1.address } });
 		return request(app)
-			.post(`/api/auth/content/posts/comments/${posts[0].id}`)
+			.post(`/api/auth/content/posts/comments/${post.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
 			.send({ comment: 'A thoughtful comment' })

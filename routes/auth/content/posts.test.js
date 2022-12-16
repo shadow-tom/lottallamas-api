@@ -44,11 +44,11 @@ describe('GET - Specific post', () => {
 	});
 
 	test('401 - Token not available in wallet', async () => {
-		const post = await db.Post.findAll();
 		const token = await getToken(testWallet2);
+		const post = await db.Post.findOne({ where: { walletId: testWallet1.address }});
 
 		return request(app)
-			.get(`/api/auth/content/posts/${post[1].id}`)
+			.get(`/api/auth/content/posts/${post.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet2.address })
 			.then((response) => {
@@ -84,19 +84,19 @@ describe('POST - Create new post', () => {
 			.send({ message })
 			.then((response) => {
 				expect(response.statusCode).toBe(401);
-				expect(JSON.parse(response.text).error).toBe('Missing contentId');
+				expect(JSON.parse(response.text).error).toBe('Missing contentId or malformed');
 			})
 	})
 
 	test('401 - Missing message', async () => {
 		const token = await getToken(testWallet1);
-		const contentId = await db.Content.findAll();
+		const content = await db.Content.findOne({ where: { walletId: testWallet1.address }});
 
 		return request(app)
 			.post(`/api/auth/content/posts/`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.send({ contentId: contentId[0].id })
+			.send({ contentId: content.id, message: null })
 			.then((response) => {
 				expect(response.statusCode).toBe(401);
 				expect(JSON.parse(response.text).error).toBe('Missing message');
@@ -106,16 +106,49 @@ describe('POST - Create new post', () => {
 	test('200 - Success', async () => {
 		const token = await getToken(testWallet1);
 		const message = 'New test post'
-		const contentId = await db.Content.findAll();
+		const contentId = await db.Content.findOne({ where: { walletId: testWallet1.address }});
 
 		return request(app)
 			.post(`/api/auth/content/posts/`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.send({ message, contentId: contentId[0].id })
+			.send({ message, contentId: contentId.id })
 			.then((response) => {
 				expect(response.statusCode).toBe(200);
 				expect(response.body.content.message).toBe(message);
+			})
+	})
+})
+
+describe('PUT - Update post', () => {
+	test('401 - Missing message', async () => {
+		const token = await getToken(testWallet1);
+		const post = await db.Post.findOne({ where: { walletId: testWallet1.address }})
+
+		return request(app)
+			.put(`/api/auth/content/posts/${post.id}`)
+			.set('Accept', 'application/json')
+			.set({'Authorization': token, 'Address': testWallet1.address })
+			.send({ message: null })
+			.then((response) => {
+				expect(response.statusCode).toBe(401);
+				expect(JSON.parse(response.text).error).toBe('Missing message');
+			})
+	})
+
+	test('200 - Success', async () => {
+		const token = await getToken(testWallet1);
+		const message = 'Updated post'
+		const post = await db.Post.findOne({ where: { walletId: testWallet1.address }})
+
+		return request(app)
+			.put(`/api/auth/content/posts/${post.id}`)
+			.set('Accept', 'application/json')
+			.set({'Authorization': token, 'Address': testWallet1.address })
+			.send({ message })
+			.then((response) => {
+				expect(response.statusCode).toBe(200);
+				expect(response.body.content[0].message).toBe(message);
 			})
 	})
 })

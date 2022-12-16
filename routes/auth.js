@@ -31,7 +31,10 @@ router.post('/validate-wallet', verifyWalletBodyParams, async (req, res) => {
 		const verified = new Message(message).verify(address, signature);
 		if (verified) {
 			const wallet = await getWalletBalance(address)
-			const assets = JSON.parse(wallet).data.map((token) => token.asset_longname)
+			const assets = JSON.parse(wallet).data
+				.map((token) => token.asset_longname)
+				.filter((token) => token ? token : false)
+
 			const token = jwt.sign({ address, assets }, 'shh');
 			res.status(200).send({ token })
 		} else {
