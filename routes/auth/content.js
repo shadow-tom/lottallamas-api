@@ -31,7 +31,7 @@ router.get('/:contentId', auth, async (req, res) => {
 		}
 	
 		const content = await db.Content.findByPk(contentId, {
-			include: ['Posts'],
+			include: 'posts'
 		});
 	
 		if(!req.assets.includes(content.token)) { 
