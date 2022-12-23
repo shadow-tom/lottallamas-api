@@ -1,7 +1,7 @@
-import app from '../../../server.js'
+import app from '../../server.js'
 import request from 'supertest'
 import { test } from '@jest/globals';
-import db from '../../../../models/models/index.js'
+import db from '../../../models/models/index.js'
 
 const testWallet1 = {
 	address: '14GRxZmNCLHo5Uknr2XYnGA61Hh9uMULXV',
@@ -20,7 +20,7 @@ function getToken(wallet) {
 
 	return new Promise((resolve, reject) => {
 		request(app)
-			.post('/api/auth/validate-wallet')
+			.post('/api/validate-wallet')
 			.set('Accept', 'application/json')
 			.send({ address, message, signature })
 			.then((record) => {
@@ -34,7 +34,7 @@ describe('GET - Specific post', () => {
 		const token = await getToken(testWallet1);
 
 		return request(app)
-			.get('/api/auth/content/posts/123')
+			.get('/api/posts/123')
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
 			.then((response) => {
@@ -48,7 +48,7 @@ describe('GET - Specific post', () => {
 		const post = await db.Post.findOne({ where: { walletId: testWallet1.address }});
 
 		return request(app)
-			.get(`/api/auth/content/posts/${post.id}`)
+			.get(`/api/posts/${post.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet2.address })
 			.then((response) => {
@@ -62,7 +62,7 @@ describe('GET - Specific post', () => {
 		const token = await getToken(testWallet1);
 
 		return request(app)
-			.get(`/api/auth/content/posts/${post.id}`)
+			.get(`/api/posts/${post.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
 			.then((response) => {
@@ -74,14 +74,16 @@ describe('GET - Specific post', () => {
 
 describe('POST - Create new post', () => {
 	test('401 - Missing contentId', async () => {
-		const message = 'New test post'
+
+		const title = 'A new test post'
+		const content = 'New test post'
 		const token = await getToken(testWallet1);
 
 		return request(app)
-			.post(`/api/auth/content/posts/`)
+			.post(`/api/posts/`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.send({ message })
+			.send({ title, content })
 			.then((response) => {
 				expect(response.statusCode).toBe(401);
 				expect(JSON.parse(response.text).error).toBe('Missing contentId or malformed');
@@ -93,29 +95,46 @@ describe('POST - Create new post', () => {
 		const content = await db.Content.findOne({ where: { walletId: testWallet1.address }});
 
 		return request(app)
-			.post(`/api/auth/content/posts/`)
+			.post(`/api/posts/`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.send({ contentId: content.id, message: null })
+			.send({ contentId: content.id, content: null })
 			.then((response) => {
 				expect(response.statusCode).toBe(401);
-				expect(JSON.parse(response.text).error).toBe('Missing message');
+				expect(JSON.parse(response.text).error).toBe('Missing content');
+			})
+	})
+
+	test('401 - Missing title', async () => {
+		const token = await getToken(testWallet1);
+		const content = await db.Content.findOne({ where: { walletId: testWallet1.address }});
+
+		return request(app)
+			.post(`/api/posts/`)
+			.set('Accept', 'application/json')
+			.set({'Authorization': token, 'Address': testWallet1.address })
+			.send({ title: null, contentId: content.id, content: 'test content' })
+			.then((response) => {
+				expect(response.statusCode).toBe(401);
+				expect(JSON.parse(response.text).error).toBe('Missing title');
 			})
 	})
 
 	test('200 - Success', async () => {
 		const token = await getToken(testWallet1);
-		const message = 'New test post'
+		const title = 'A test title';
+		const content = 'New test post'
 		const contentId = await db.Content.findOne({ where: { walletId: testWallet1.address }});
 
 		return request(app)
-			.post(`/api/auth/content/posts/`)
+			.post(`/api/posts/`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.send({ message, contentId: contentId.id })
+			.send({ title, content, contentId: contentId.id })
 			.then((response) => {
 				expect(response.statusCode).toBe(200);
-				expect(response.body.content.message).toBe(message);
+				expect(response.body.content.title).toBe(title);
+				expect(response.body.content.content).toBe(content);
 			})
 	})
 })
@@ -123,32 +142,36 @@ describe('POST - Create new post', () => {
 describe('PUT - Update post', () => {
 	test('401 - Missing message', async () => {
 		const token = await getToken(testWallet1);
+		const title = 'A test title'
 		const post = await db.Post.findOne({ where: { walletId: testWallet1.address }})
+		const contentId = await db.Content.findOne({ where: { walletId: testWallet1.address }});
 
 		return request(app)
-			.put(`/api/auth/content/posts/${post.id}`)
+			.put(`/api/posts/${post.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.send({ message: null })
+			.send({ title, content: null, contentId: contentId.id })
 			.then((response) => {
 				expect(response.statusCode).toBe(401);
-				expect(JSON.parse(response.text).error).toBe('Missing message');
+				expect(JSON.parse(response.text).error).toBe('Missing content');
 			})
 	})
 
 	test('200 - Success', async () => {
 		const token = await getToken(testWallet1);
-		const message = 'Updated post'
+		const title = 'A test title'
+		const content = 'Updated post'
 		const post = await db.Post.findOne({ where: { walletId: testWallet1.address }})
+		const contentId = await db.Content.findOne({ where: { walletId: testWallet1.address }});
 
 		return request(app)
-			.put(`/api/auth/content/posts/${post.id}`)
+			.put(`/api/posts/${post.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.send({ message })
+			.send({ title, content, contentId })
 			.then((response) => {
 				expect(response.statusCode).toBe(200);
-				expect(response.body.content[0].message).toBe(message);
+				expect(response.body.content[0].content).toBe(content);
 			})
 	})
 })

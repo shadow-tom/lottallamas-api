@@ -1,8 +1,33 @@
 import express from 'express';
 const router = express.Router()
-import auth from '../../../middleware/auth.js'
-import db from '../../../../models/models/index.js'
+import auth from '../../middleware/auth.js'
+import db from '../../../models/models/index.js'
 import { validate as uuidValidate } from 'uuid';
+
+// GET posts by content ID
+router.get('/', auth, async (req, res) => {
+	const { contentId } = req.query
+
+	if(!contentId) { return res.status(401).send({ error: 'Missing contentId or malformed' }) }
+
+	const contentRecord = await db.Content.findByPk(contentId);
+
+	if(!req.assets.includes(contentRecord.token)) {
+		return res.status(401).send({ error: 'Token not available in wallet' })
+	}
+
+	try {
+		let posts
+		if (contentId) {
+			posts = await db.Post.findAll({ where: { contentId }})
+		}
+
+		res.status(200).send({ posts })
+	} catch (error) {
+		res.status(500).send({ error })
+	}
+})
+
 
 // GET specific post
 router.get('/:postId', auth, async (req, res) => {
@@ -12,7 +37,7 @@ router.get('/:postId', auth, async (req, res) => {
 		if (!uuidValidate(postId)) { return res.status(401).send({ error: 'Post ID malformed' })}
 	
 		const posts = await db.Post.findByPk(postId, {
-			include: ['Comments', 'Content'],
+			include: ['comments', 'Content'],
 		});
 
 		if(!req.assets.includes(posts.Content.token)) {
@@ -27,10 +52,12 @@ router.get('/:postId', auth, async (req, res) => {
 
 // POST Create post
 router.post('/', auth, async (req, res) => {
-	const { message, contentId } = req.body
+	const { title, content, contentId } = req.body
 
 	if(!contentId) { return res.status(401).send({ error: 'Missing contentId or malformed' }) }
-	if(!message) { return res.status(401).send({ error: 'Missing message' }) }
+	if(!content) { return res.status(401).send({ error: 'Missing content' }) }
+	if(!title) { return res.status(401).send({ error: 'Missing title' }) }
+
 
 	const contentRecord = await db.Content.findByPk(contentId);
 
@@ -39,12 +66,13 @@ router.post('/', auth, async (req, res) => {
 	}
 
 	try {
-		const content = await contentRecord.createPost({
-			message,
+		const createdRecord = await contentRecord.createPost({
+			title,
+			content,
 			walletId: req.address,
 			contentId,
 		});
-		res.status(200).send({ content })
+		res.status(200).send({ content: createdRecord })
 	} catch (error) {
 		res.status(500).send({ error })
 	}
@@ -52,10 +80,12 @@ router.post('/', auth, async (req, res) => {
 
 // PUT Update endpoint
 router.put('/:postId', auth, async (req, res) => {
-	if(!req.body.message) { return res.status(401).send({ error: 'Missing message' }) }
+	if(!req.body.title) { return res.status(401).send({ error: 'Missing title' }) }
+	if(!req.body.content) { return res.status(401).send({ error: 'Missing content' }) }
 	try {
 		const [row, content] = await db.Post.update({
-			message: req.body.message
+			title: req.body.title,
+			content: req.body.content
 		}, {
 			where: {
 				id: req.params.postId,

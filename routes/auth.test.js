@@ -23,7 +23,7 @@ const { existingAddress, existingMessage, existingSignature } = existingWallet;
 describe('POST - Login (Address, Message, Signature)', () => {
 	test('errors if missing param', async () => {
 		await request(app)
-			.post('/api/auth/validate-wallet')
+			.post('/api/validate-wallet')
 			.set('Accept', 'application/json')
 			.send({ address,  signature })
 			.then((response) => {
@@ -34,7 +34,7 @@ describe('POST - Login (Address, Message, Signature)', () => {
 
 	test('errors if invalid address', async () => {
 		await request(app)
-			.post('/api/auth/validate-wallet')
+			.post('/api/validate-wallet')
 			.set('Accept', 'application/json')
 			.send({ address: 'Fake123',  signature, message })
 			.then((response) => {
@@ -45,7 +45,7 @@ describe('POST - Login (Address, Message, Signature)', () => {
 
 	test('errors if invalid signature', async () => {
 		await request(app)
-			.post('/api/auth/validate-wallet')
+			.post('/api/validate-wallet')
 			.set('Accept', 'application/json')
 			.send({ address,  signature: 'Fake123', message })
 			.then((response) => {
@@ -55,7 +55,7 @@ describe('POST - Login (Address, Message, Signature)', () => {
 
 	test('errors if message is wrong', async () => {
 		await request(app)
-			.post('/api/auth/validate-wallet')
+			.post('/api/validate-wallet')
 			.set('Accept', 'application/json')
 			.send({ address, signature, message: 'Incorrect Message' })
 			.then((response) => {
@@ -66,7 +66,7 @@ describe('POST - Login (Address, Message, Signature)', () => {
 
 	test('succeeds if correct params', async () => {
 		await request(app)
-			.post('/api/auth/validate-wallet')
+			.post('/api/validate-wallet')
 			.set('Accept', 'application/json')
 			.send({ address, signature, message })
 			.then((response) => {
@@ -86,7 +86,7 @@ describe('POST - Create account', () => {
 
 	// test('401 - Account exists', async () => {
 	// 	const { res } = await request(app)
-	// 	.post('/api/auth/validate-wallet')
+	// 	.post('/api/validate-wallet')
 	// 	.set('Accept', 'application/json')
 	// 	.send({ existingAddress, existingMessage, existingSignature })
 	// 	.then((record) => {
@@ -96,7 +96,7 @@ describe('POST - Create account', () => {
 	// 	const token = JSON.parse(res.text).token;
 
 	// 	await request(app)
-	// 		.post('/api/auth/create-account')
+	// 		.post('/api/create-account')
 	// 		.set('Accept', 'application/json')
 	// 		.set({'Authorization': token, 'Address': address })
 	// 		.send({ nickName })
@@ -108,7 +108,7 @@ describe('POST - Create account', () => {
 
 	test('succeeds if proper token is present', async () => {
 		const { res } = await request(app)
-			.post('/api/auth/validate-wallet')
+			.post('/api/validate-wallet')
 			.set('Accept', 'application/json')
 			.send({ address, message, signature })
 			.then((record) => {
@@ -118,7 +118,7 @@ describe('POST - Create account', () => {
 		const token = JSON.parse(res.text).token;
 
 		await request(app)
-			.post('/api/auth/create-account')
+			.post('/api/create-account')
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': address })
 			.send({ nickName })

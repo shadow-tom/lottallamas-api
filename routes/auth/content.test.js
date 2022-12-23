@@ -19,7 +19,7 @@ function getToken(wallet) {
 	const { address, message, signature } = wallet;
 	return new Promise((resolve, reject) => {
 		request(app)
-			.post('/api/auth/validate-wallet')
+			.post('/api/validate-wallet')
 			.set('Accept', 'application/json')
 			.send({ address, message, signature })
 			.then((record) => {
@@ -32,7 +32,7 @@ describe('GET - All content records', () => {
 	test('200 - Success', async () => {
 		const token1 = await getToken(testWallet1);
 		await request(app)
-			.get('/api/auth/content')
+			.get('/api/content')
 			.set('Accept', 'application/json')
 			.set({'Authorization': token1, 'Address': testWallet1.address })
 			.then((response) => {
@@ -43,7 +43,7 @@ describe('GET - All content records', () => {
 		
 		const token2 = await getToken(testWallet2);
 		await request(app)
-			.get('/api/auth/content')
+			.get('/api/content')
 			.set('Accept', 'application/json')
 			.set({'Authorization': token2, 'Address': testWallet2.address })
 			.then((response) => {
@@ -58,7 +58,7 @@ describe('GET - Singular content record', () => {
 	test('returns 400 - Content ID malformed', async ()=> {
 		const token1 = await getToken(testWallet1);
 		await request(app)
-			.get(`/api/auth/content/123`)
+			.get(`/api/content/123`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token1, 'Address': testWallet1.address })
 			.then((response) => {
@@ -72,7 +72,7 @@ describe('GET - Singular content record', () => {
 
 		const token2 = await getToken(testWallet2);
 		await request(app)
-			.get(`/api/auth/content/${content.id}`)
+			.get(`/api/content/${content.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token2, 'Address': testWallet2.address })
 			.then((response) => {
@@ -88,7 +88,7 @@ describe('GET - Singular content record', () => {
 		const token2 = await getToken(testWallet2);
 
 		await request(app)
-			.get(`/api/auth/content/${content1.id}`)
+			.get(`/api/content/${content1.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token1, 'Address': testWallet1.address })
 			.then((response) => {
@@ -97,7 +97,7 @@ describe('GET - Singular content record', () => {
 			})
 
 		await request(app)
-			.get(`/api/auth/content/${content2.id}`)
+			.get(`/api/content/${content2.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token2, 'Address': testWallet2.address })
 			.then((response) => {
@@ -124,7 +124,7 @@ describe('POST - Create a content record', () => {
 			token: 'LLAMAS.invalidToken'
 		}
 		await request(app)
-			.post('/api/auth/content/')
+			.post('/api/content/')
 			.set('Accept', 'application/json')
 			.set({'Authorization': token1, 'Address': testWallet1.address })
 			.send(body)
@@ -144,7 +144,7 @@ describe('POST - Create a content record', () => {
 			token: 'LLAMAS.test1'
 		}
 		await request(app)
-			.post('/api/auth/content/')
+			.post('/api/content/')
 			.set('Accept', 'application/json')
 			.set({'Authorization': token1, 'Address': testWallet1.address })
 			.send(body)
@@ -164,7 +164,7 @@ describe('POST - Create a content record', () => {
 			token: 'LLAMAS.test2'
 		}
 		await request(app)
-			.post('/api/auth/content/')
+			.post('/api/content/')
 			.set('Accept', 'application/json')
 			.set({'Authorization': token1, 'Address': testWallet1.address })
 			.send(body)
@@ -184,7 +184,7 @@ describe('POST - Create a content record', () => {
 			token: 'LLAMAS.test3'
 		}
 		await request(app)
-			.post('/api/auth/content/')
+			.post('/api/content/')
 			.set('Accept', 'application/json')
 			.set({'Authorization': token1, 'Address': testWallet1.address })
 			.send(body)
@@ -213,7 +213,7 @@ describe('PUT - Update a content record', () => {
 			isPublic: false,
 		}
 		await request(app)
-			.put(`/api/auth/content/${content.id}`)
+			.put(`/api/content/${content.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token1, 'Address': testWallet1.address })
 			.send(body)
@@ -233,7 +233,7 @@ describe('PUT - Update a content record', () => {
 			isPublic: false,
 		}
 		await request(app)
-			.put(`/api/auth/content/${content.id}`)
+			.put(`/api/content/${content.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token1, 'Address': testWallet1.address })
 			.send(body)

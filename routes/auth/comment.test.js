@@ -1,7 +1,7 @@
-import app from '../../../../server.js'
+import app from '../../server.js'
 import request from 'supertest'
 import { test } from '@jest/globals';
-import db from '../../../../../models/models/index.js'
+import db from '../../../models/models/index.js'
 
 const testWallet1 = {
 	address: '14GRxZmNCLHo5Uknr2XYnGA61Hh9uMULXV',
@@ -19,7 +19,7 @@ function getToken(wallet) {
 	const { address, message, signature } = wallet;
 	return new Promise((resolve, reject) => {
 		request(app)
-			.post('/api/auth/validate-wallet')
+			.post('/api/validate-wallet')
 			.set('Accept', 'application/json')
 			.send({ address, message, signature })
 			.then((record) => {
@@ -28,13 +28,14 @@ function getToken(wallet) {
 	})
 }
 
-describe('POST /api/auth/content/posts/comments/:postId', () => {
+describe.only('POST /api/comments', () => {
 	test('400 - Post ID malformed', async () => {
 		const token1 = await getToken(testWallet1);
 		return request(app)
-			.post('/api/auth/content/posts/comments/1')
+			.post('/api/comments')
 			.set('Accept', 'application/json')
 			.set({'Authorization': token1, 'Address': testWallet1.address })
+			.send({ comment: { postId: '123' }})
 			.then((response) => {
 				expect(response.statusCode).toBe(400);
 				expect(JSON.parse(response.text).error).toBe('Post ID malformed');
@@ -44,9 +45,10 @@ describe('POST /api/auth/content/posts/comments/:postId', () => {
 	test('404 - Post not found', async () => {
 		const token1 = await getToken(testWallet1);
 		return request(app)
-			.post('/api/auth/content/posts/comments/3fb32686-39a5-4a55-b33a-ea63f5f50fd0')
+			.post('/api/comments')
 			.set('Accept', 'application/json')
 			.set({'Authorization': token1, 'Address': testWallet1.address })
+			.send({ comment: { postId: '3fb32686-39a5-4a55-b33a-ea63f5f50fd0' }})
 			.then((response) => {
 				expect(response.statusCode).toBe(404);
 				expect(JSON.parse(response.text).error).toBe('Post not found');
@@ -57,9 +59,10 @@ describe('POST /api/auth/content/posts/comments/:postId', () => {
 		const token = await getToken(testWallet2);
 		const post = await db.Post.findOne({ where: { walletId: testWallet1.address }});
 		return request(app)
-			.post(`/api/auth/content/posts/comments/${post.id}`)
+			.post(`/api/comments`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet2.address })
+			.send({ comment: { postId: post.id }})
 			.then((response) => {
 				expect(response.statusCode).toBe(401);
 				expect(JSON.parse(response.text).error).toBe('Token not available in wallet');
@@ -70,10 +73,10 @@ describe('POST /api/auth/content/posts/comments/:postId', () => {
 		const token = await getToken(testWallet1);
 		const post = await db.Post.findOne({ where: { walletId: testWallet1.address }});
 		return request(app)
-			.post(`/api/auth/content/posts/comments/${post.id}`)
+			.post(`/api/comments`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.send({ comment: null })
+			.send({ comment: { postId: post.id, comment: null }})
 			.then((response) => {
 				expect(response.statusCode).toBe(401);
 				expect(JSON.parse(response.text).error).toBe('No comment present');
@@ -84,13 +87,13 @@ describe('POST /api/auth/content/posts/comments/:postId', () => {
 		const token = await getToken(testWallet1);
 		const post = await db.Post.findOne({ where: { walletId: testWallet1.address } });
 		return request(app)
-			.post(`/api/auth/content/posts/comments/${post.id}`)
+			.post(`/api/comments`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.send({ comment: 'A thoughtful comment' })
+			.send({ comment: { postId: post.id, comment: 'A thoughtful comment' }})
 			.then((response) => {
 				expect(response.statusCode).toBe(200);
-				expect(JSON.parse(response.text).content.comment).toBe('A thoughtful comment');
+				expect(JSON.parse(response.text).comment.comment).toBe('A thoughtful comment');
 			})
 	});
 });
