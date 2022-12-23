@@ -76,14 +76,14 @@ describe('POST - Create new post', () => {
 	test('401 - Missing contentId', async () => {
 
 		const title = 'A new test post'
-		const content = 'New test post'
+		const text = 'New test post'
 		const token = await getToken(testWallet1);
 
 		return request(app)
 			.post(`/api/posts/`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.send({ title, content })
+			.send({ title, text })
 			.then((response) => {
 				expect(response.statusCode).toBe(401);
 				expect(JSON.parse(response.text).error).toBe('Missing contentId or malformed');
@@ -98,7 +98,7 @@ describe('POST - Create new post', () => {
 			.post(`/api/posts/`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.send({ contentId: content.id, content: null })
+			.send({ contentId: content.id, text: null })
 			.then((response) => {
 				expect(response.statusCode).toBe(401);
 				expect(JSON.parse(response.text).error).toBe('Missing content');
@@ -113,7 +113,7 @@ describe('POST - Create new post', () => {
 			.post(`/api/posts/`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.send({ title: null, contentId: content.id, content: 'test content' })
+			.send({ title: null, contentId: content.id, text: 'test content' })
 			.then((response) => {
 				expect(response.statusCode).toBe(401);
 				expect(JSON.parse(response.text).error).toBe('Missing title');
@@ -123,24 +123,24 @@ describe('POST - Create new post', () => {
 	test('200 - Success', async () => {
 		const token = await getToken(testWallet1);
 		const title = 'A test title';
-		const content = 'New test post'
+		const text = 'New test post'
 		const contentId = await db.Content.findOne({ where: { walletId: testWallet1.address }});
 
 		return request(app)
 			.post(`/api/posts/`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.send({ title, content, contentId: contentId.id })
+			.send({ title, text, contentId: contentId.id })
 			.then((response) => {
 				expect(response.statusCode).toBe(200);
 				expect(response.body.content.title).toBe(title);
-				expect(response.body.content.content).toBe(content);
+				expect(response.body.content.text).toBe(text);
 			})
 	})
 })
 
 describe('PUT - Update post', () => {
-	test('401 - Missing message', async () => {
+	test('401 - Missing text', async () => {
 		const token = await getToken(testWallet1);
 		const title = 'A test title'
 		const post = await db.Post.findOne({ where: { walletId: testWallet1.address }})
@@ -150,7 +150,7 @@ describe('PUT - Update post', () => {
 			.put(`/api/posts/${post.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.send({ title, content: null, contentId: contentId.id })
+			.send({ title, text: null, contentId: contentId.id })
 			.then((response) => {
 				expect(response.statusCode).toBe(401);
 				expect(JSON.parse(response.text).error).toBe('Missing content');
@@ -160,7 +160,7 @@ describe('PUT - Update post', () => {
 	test('200 - Success', async () => {
 		const token = await getToken(testWallet1);
 		const title = 'A test title'
-		const content = 'Updated post'
+		const text = 'Updated post'
 		const post = await db.Post.findOne({ where: { walletId: testWallet1.address }})
 		const contentId = await db.Content.findOne({ where: { walletId: testWallet1.address }});
 
@@ -168,10 +168,10 @@ describe('PUT - Update post', () => {
 			.put(`/api/posts/${post.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.send({ title, content, contentId })
+			.send({ title, text, contentId })
 			.then((response) => {
 				expect(response.statusCode).toBe(200);
-				expect(response.body.content[0].content).toBe(content);
+				expect(response.body.content[0].text).toBe(text);
 			})
 	})
 })

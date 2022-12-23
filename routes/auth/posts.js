@@ -52,10 +52,10 @@ router.get('/:postId', auth, async (req, res) => {
 
 // POST Create post
 router.post('/', auth, async (req, res) => {
-	const { title, content, contentId } = req.body
+	const { title, text, contentId } = req.body
 
 	if(!contentId) { return res.status(401).send({ error: 'Missing contentId or malformed' }) }
-	if(!content) { return res.status(401).send({ error: 'Missing content' }) }
+	if(!text) { return res.status(401).send({ error: 'Missing content' }) }
 	if(!title) { return res.status(401).send({ error: 'Missing title' }) }
 
 
@@ -68,7 +68,7 @@ router.post('/', auth, async (req, res) => {
 	try {
 		const createdRecord = await contentRecord.createPost({
 			title,
-			content,
+			text,
 			walletId: req.address,
 			contentId,
 		});
@@ -81,11 +81,11 @@ router.post('/', auth, async (req, res) => {
 // PUT Update endpoint
 router.put('/:postId', auth, async (req, res) => {
 	if(!req.body.title) { return res.status(401).send({ error: 'Missing title' }) }
-	if(!req.body.content) { return res.status(401).send({ error: 'Missing content' }) }
+	if(!req.body.text) { return res.status(401).send({ error: 'Missing content' }) }
 	try {
 		const [row, content] = await db.Post.update({
 			title: req.body.title,
-			content: req.body.content
+			text: req.body.text
 		}, {
 			where: {
 				id: req.params.postId,
