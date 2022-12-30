@@ -36,7 +36,7 @@ router.post('/validate-wallet', verifyWalletBodyParams, async (req, res) => {
 				.filter((token) => token ? token : false)
 
 			const token = jwt.sign({ address, assets }, 'shh');
-			res.status(200).send({ token })
+			res.status(200).send({ token, address })
 		} else {
 			res.status(404).send({ error: 'Invalid Message' })
 		}
