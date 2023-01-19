@@ -6,13 +6,13 @@ import db from '../../../models/models/index.js'
 const testWallet1 = {
 	address: '14GRxZmNCLHo5Uknr2XYnGA61Hh9uMULXV',
 	message: 'The man who stole the world',
-	signature: 'H4L8U9PWk0VyL12kJr7xZWbkTzHPEL4K2ByiR8KnfMhlI/XPsNLCgn9OzxTVujljO9hOMDff3e+fUyvbx4UYIAk=',
+	signature: 'H1w16tBXgWiBiOKVOO6ZsD085JbEeLtOeE0bdR06E+9fEl8vpLpMUjXQFE/knJ2cccrVCYaVvcFO3UIvaeZqB6M=',
 }
 
 const testWallet2 = {
 	address: '1FBuCHMw5e5yTNKbf1eJq1bXZjoGaXeqwV',
 	message: 'The man who stole the world',
-	signature: 'IKsPcXMdQtIQtu2qjV34rtiwzv7uxo7eZp923u6/61iFJR7EzzeSBWdlp8OyjP3Ywk/8Kr4PvCLtrt0Z2MsXSiA=',
+	signature: 'IHOyein3654Qulxc+/Fddr5WWtMAgwCcqXCGMBnsragzXqO1BcpygeAueDSaXBF0cqYb3eiGrvPcpaFXmOCguVQ=',
 }
 
 function getToken(wallet) {
@@ -83,7 +83,7 @@ describe('POST - Create new post', () => {
 			.post(`/api/posts/`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.send({ title, text })
+			.send({ post: { title, text }})
 			.then((response) => {
 				expect(response.statusCode).toBe(401);
 				expect(JSON.parse(response.text).error).toBe('Missing contentId or malformed');
@@ -98,7 +98,7 @@ describe('POST - Create new post', () => {
 			.post(`/api/posts/`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.send({ contentId: content.id, text: null })
+			.send({ post: { contentId: content.id, text: null }})
 			.then((response) => {
 				expect(response.statusCode).toBe(401);
 				expect(JSON.parse(response.text).error).toBe('Missing content');
@@ -113,7 +113,7 @@ describe('POST - Create new post', () => {
 			.post(`/api/posts/`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.send({ title: null, contentId: content.id, text: 'test content' })
+			.send({ post: { title: null, contentId: content.id, text: 'test content' }})
 			.then((response) => {
 				expect(response.statusCode).toBe(401);
 				expect(JSON.parse(response.text).error).toBe('Missing title');
@@ -130,11 +130,11 @@ describe('POST - Create new post', () => {
 			.post(`/api/posts/`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.send({ title, text, contentId: contentId.id })
+			.send({ post: { title, text, contentId: contentId.id }})
 			.then((response) => {
 				expect(response.statusCode).toBe(200);
-				expect(response.body.content.title).toBe(title);
-				expect(response.body.content.text).toBe(text);
+				expect(response.body.post.title).toBe(title);
+				expect(response.body.post.text).toBe(text);
 			})
 	})
 })
@@ -150,7 +150,7 @@ describe('PUT - Update post', () => {
 			.put(`/api/posts/${post.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.send({ title, text: null, contentId: contentId.id })
+			.send({ post: { title, text: null, contentId: contentId.id } })
 			.then((response) => {
 				expect(response.statusCode).toBe(401);
 				expect(JSON.parse(response.text).error).toBe('Missing content');
@@ -168,10 +168,11 @@ describe('PUT - Update post', () => {
 			.put(`/api/posts/${post.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.send({ title, text, contentId })
+			.send({ post: { title, text, contentId }})
 			.then((response) => {
 				expect(response.statusCode).toBe(200);
-				expect(response.body.content[0].text).toBe(text);
+				expect(response.body.post[0].title).toBe(title);
+				expect(response.body.post[0].text).toBe(text);
 			})
 	})
 })
