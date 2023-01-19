@@ -4,7 +4,7 @@ import auth from '../../middleware/auth.js'
 import db from '../../../models/models/index.js'
 import { validate as uuidValidate } from 'uuid';
 
-// GET posts by content ID - NO TESTS
+// GET posts by content ID - TODO: NO TESTS
 router.get('/', auth, async (req, res) => {
 	const { contentId, postId } = req.query
 
@@ -31,7 +31,6 @@ router.get('/', auth, async (req, res) => {
 // POST comment
 router.post('/', auth, async (req, res) => {
 	try {
-		console.log(req.body.comment.postId)
 		if (!uuidValidate(req.body.comment.postId)) {
 			return res.status(400).send({ error: 'Post ID malformed' })
 		}
