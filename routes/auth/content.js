@@ -1,7 +1,7 @@
 import express from 'express';
 const router = express.Router()
 import auth from '../../middleware/auth.js'
-import db from '@devups/lottallamas-models'
+import db from '@lotta-llamas/models';
 import Sequelize from 'sequelize';
 import { validate as uuidValidate } from 'uuid';
 
