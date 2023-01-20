@@ -1,7 +1,7 @@
 import express from 'express';
 const router = express.Router()
 import auth from '../../middleware/auth.js'
-import db from '../../../models/models/index.js'
+import db from '@devups/lottallamas-models'
 
 router.get('/:walletId', auth, async (req, res) => {
 	try {

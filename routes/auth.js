@@ -7,7 +7,7 @@ import pkg from 'bitcore-lib';
 const { Message } = pkg;
 import https from 'https';
 
-import db from '../../models/models/index.js'
+import db from '@devups/lottallamas-models'
 
 async function getWalletBalance(address) {
 	return new Promise((resolve, reject) => {
