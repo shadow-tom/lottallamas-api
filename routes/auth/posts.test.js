@@ -176,3 +176,45 @@ describe('PUT - Update post', () => {
 			})
 	})
 })
+
+describe('DELETE - Delete post', () => {
+	test('500 -Post ID malformed', async () => {
+		const token = await getToken(testWallet1);
+
+		return request(app)
+			.delete('/api/posts/malformed-id')
+			.set('Accept', 'application/json')
+			.set({'Authorization': token, 'Address': testWallet1.address })
+			.then((response) => {
+				expect(response.statusCode).toBe(500);
+				expect(JSON.parse(response.text).error).toBe('Post ID malformed');
+			})
+	})
+
+
+	test('401 - Post not found', async () => {
+		const token = await getToken(testWallet1);
+
+		return request(app)
+			.delete('/api/posts/83dca716-be5d-4aeb-8a07-087857a5efd7')
+			.set('Accept', 'application/json')
+			.set({'Authorization': token, 'Address': testWallet1.address })
+			.then((response) => {
+				expect(response.statusCode).toBe(401);
+				expect(JSON.parse(response.text).error).toBe('Post not found');
+			})
+	})
+
+	test('200 - Success', async () => {
+		const token = await getToken(testWallet1);
+		const post = await db.Post.findOne({ where: { walletId: testWallet1.address }})
+
+		return request(app)
+			.delete(`/api/posts/${post.id}`)
+			.set('Accept', 'application/json')
+			.set({'Authorization': token, 'Address': testWallet1.address })
+			.then((response) => {
+				expect(response.statusCode).toBe(200);
+			})
+	})
+})

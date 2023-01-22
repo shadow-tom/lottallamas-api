@@ -30,10 +30,8 @@ router.get('/:contentId', auth, async (req, res) => {
 			return res.status(400).send({ error: 'Content ID malformed' })
 		}
 	
-		const content = await db.Content.findByPk(contentId, {
-			include: 'posts'
-		});
-	
+		const content = await db.Content.findByPk(contentId);
+
 		if(!req.assets.includes(content.token)) { 
 			return res.status(401).send({ error: 'Token not available in wallet' })
 		}
