@@ -44,7 +44,7 @@ router.get('/:contentId', auth, async (req, res) => {
 
 // POST Create Content
 router.post('/', auth, async (req, res) => {
-	const { title, description, isPublic, token } = req.body
+	const { title, description, isPublic, token } = req.body.content
 	// Determine what assets are in the db that belong to your walletId
 	const tokensObjsInUse = await db.Content.findAll({ attributes: ['token'], where: { walletId: req.address } })
 	// Map through and return array of tokens
