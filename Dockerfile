@@ -1,17 +1,11 @@
-## TODO: This is not currently working
-
 FROM node
-
-COPY /Users/tom/Desktop/projects/w/models /models
 
 COPY . /api
 
-WORKDIR /models
-
-RUN npm install
-
 WORKDIR /api
 
-RUN npm install && npm start
+RUN --mount=type=secret,id=npm,target=/root/.npmrc npm install
 
-EXPOSE 8888
+CMD ["node", "server.js"]
+
+EXPOSE 3100
