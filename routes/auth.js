@@ -34,13 +34,17 @@ router.post('/validate-wallet', verifyWalletBodyParams, async (req, res) => {
 			const assets = JSON.parse(wallet).data
 				.map((token) => token.asset_longname)
 				.filter((token) => token ? token : false)
-
+			// TODO: Make a real key, dingus.
 			const token = jwt.sign({ address, assets }, 'shh');
+
+			req.logger.log({ level: 'info', message: `Address: ${address} validated` });
+
 			res.status(200).send({ token, address })
 		} else {
 			res.status(404).send({ error: 'Invalid Message' })
 		}
 	} catch(error) {
+		req.logger.log({ level: 'error', message: error });
 		res.status(500).send({ error });
 	}
 });
