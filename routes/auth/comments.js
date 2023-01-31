@@ -21,9 +21,10 @@ router.get('/', auth, async (req, res) => {
 		if (true) {
 			comments = await db.Comment.findAll({ where: { postId }})
 		}
-
+		req.logger.log({ level: 'info', message: `Address: ${req.address} requesting all comments`});
 		res.status(200).send({ comments })
 	} catch (error) {
+		req.logger.log({ level: 'error', message: error });
 		res.status(500).send({ error })
 	}
 })
@@ -50,9 +51,10 @@ router.post('/', auth, async (req, res) => {
 			comment,
 			walletId: req.address
 		});
-	
+		req.logger.log({ level: 'info', message: `Address: ${req.address} creating comment`});
 		res.status(200).send({ comment: commentRecord })
 	} catch (error) {
+		req.logger.log({ level: 'error', message: error });
 		res.status(500).send({ error })
 	}
 })

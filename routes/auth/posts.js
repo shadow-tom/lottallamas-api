@@ -28,9 +28,10 @@ router.get('/', auth, async (req, res) => {
 				attributes: { exclude: ['isDeleted'] }
 			})
 		}
-
+		req.logger.log({ level: 'info', message: `Address: ${req.address} requesting all posts`});
 		res.status(200).send({ posts })
 	} catch (error) {
+		req.logger.log({ level: 'error', message: error });
 		res.status(500).send({ error })
 	}
 })
@@ -54,9 +55,11 @@ router.get('/:postId', auth, async (req, res) => {
 		if(!req.assets.includes(posts.Content.token)) {
 			res.status(401).send({ error: 'Token not available in wallet' })
 		} else {
+			req.logger.log({ level: 'info', message: `Address: ${req.address} requesting post: ${postId}`});
 			res.status(200).send({ posts })
 		}
 	} catch (error) {
+		req.logger.log({ level: 'error', message: error });
 		res.status(500).send({ error })
 	}
 })
@@ -83,8 +86,10 @@ router.post('/', auth, async (req, res) => {
 			walletId: req.address,
 			contentId,
 		});
+		req.logger.log({ level: 'info', message: `Address: ${req.address} created a post`});
 		res.status(200).send({ post: createdRecord })
 	} catch (error) {
+		req.logger.log({ level: 'error', message: error });
 		res.status(500).send({ error })
 	}
 })
@@ -105,8 +110,10 @@ router.put('/:postId', auth, async (req, res) => {
 			attributes: { exclude: ['isDeleted'] },
 			returning: true
 		})
+		req.logger.log({ level: 'info', message: `Address: ${req.address} updated post: ${req.params.postId}`});
 		res.status(200).send({ post: content })
 	} catch(error) {
+		req.logger.log({ level: 'error', message: error });
 		res.status(500).send({ error })
 	}
 })
@@ -131,8 +138,10 @@ router.delete('/:postId', auth, async(req, res) => {
 			return res.status(401).send({ error: 'Post not found' })
 		}
 
+		req.logger.log({ level: 'info', message: `Address: ${req.address} deleted post: ${postId}`});
 		res.status(200).send({ status: 'ok' })
 	} catch (error) {
+		req.logger.log({ level: 'error', message: error });
 		res.status(500).send({ error })
 	}
 })

@@ -15,8 +15,10 @@ router.get('/', auth, async (req, res) => {
 				}
 			}
 		});
+		req.logger.log({ level: 'info', message: `Address: ${req.address} requesting all content`});
 		res.status(200).send({ content })
 	} catch (error) {
+		req.logger.log({ level: 'error', message: error });
 		res.status(500).send({ error })
 	}
 })
@@ -35,9 +37,10 @@ router.get('/:contentId', auth, async (req, res) => {
 		if(!req.assets.includes(content.token)) { 
 			return res.status(401).send({ error: 'Token not available in wallet' })
 		}
-	
+		req.logger.log({ level: 'info', message: `Address: ${req.address} GET'n content: ${contentId}`});
 		res.status(200).send({ content })
 	} catch(error) {
+		req.logger.log({ level: 'error', message: error });
 		res.status(500).send({ error })
 	}
 })
@@ -69,9 +72,10 @@ router.post('/', auth, async (req, res) => {
 			isPublic,
 			token
 		});
-	
+		req.logger.log({ level: 'info', message: `Address: ${req.address} creating content`});
 		res.status(200).send({ content })
 	} catch (error) {
+		req.logger.log({ level: 'error', message: error });
 		res.status(500).send({ error })
 	}
 })
@@ -94,9 +98,10 @@ router.put('/:contentId', auth, async (req, res) => {
 			},
 			returning: true
 		});
-	
+		req.logger.log({ level: 'info', message: `Address: ${req.address} updating content: ${contentId}`});
 		res.status(200).send({ content })
 	} catch (error) {
+		req.logger.log({ level: 'error', message: error });
 		res.status(500).send({ error })
 	}
 })

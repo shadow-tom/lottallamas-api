@@ -1,18 +1,38 @@
-import express from 'express';
-import cors from 'cors';
+import express from 'express'
+import cors from 'cors'
 const app = express()
 
-import auth from './routes/auth.js';
+import auth from './routes/auth.js'
 import wallets from './routes/auth/wallets.js'
 import content from './routes/auth/content.js'
 import posts from './routes/auth/posts.js'
 import comments from './routes/auth/comments.js'
+import winston from 'winston'
 
 const port = 3100
 
 app.use(cors({
     origin: '*'
 }));
+
+// Logging middleware
+app.use((req, res, next) => {
+	if (process.env.NODE_ENV === 'production') {
+		req.logger = winston.createLogger({
+			transports: [
+				new winston.transports.Console(),
+				new winston.transports.File({ filename: 'logs/combined.log' })
+			]
+		});
+	} else {
+		req.logger = winston.createLogger({
+			transports: [
+				new winston.transports.Console(),
+			]
+		});
+	}
+	next()
+})
 
 app.use(express.json()) // for parsing application/json
 app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
