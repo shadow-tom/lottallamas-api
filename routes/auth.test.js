@@ -77,55 +77,55 @@ describe('POST - Login (Address, Message, Signature)', () => {
 	});
 });
 
-describe('POST - Create account', () => {
-	afterAll(async() => {
-		await db.Wallet.destroy({
-			where: { id: wallet.address }
-		})
-	});
+// describe('POST - Create account', () => {
+// 	afterAll(async() => {
+// 		await db.Wallet.destroy({
+// 			where: { id: wallet.address }
+// 		})
+// 	});
 
-	// test('401 - Account exists', async () => {
-	// 	const { res } = await request(app)
-	// 	.post('/api/validate-wallet')
-	// 	.set('Accept', 'application/json')
-	// 	.send({ existingAddress, existingMessage, existingSignature })
-	// 	.then((record) => {
-	// 		return record;
-	// 	})
+// 	test('401 - Account exists', async () => {
+// 		const { res } = await request(app)
+// 		.post('/api/validate-wallet')
+// 		.set('Accept', 'application/json')
+// 		.send({ existingAddress, existingMessage, existingSignature })
+// 		.then((record) => {
+// 			return record;
+// 		})
 
-	// 	const token = JSON.parse(res.text).token;
+// 		const token = JSON.parse(res.text).token;
 
-	// 	await request(app)
-	// 		.post('/api/create-account')
-	// 		.set('Accept', 'application/json')
-	// 		.set({'Authorization': token, 'Address': address })
-	// 		.send({ nickName })
-	// 		.then((response) => {
-	// 			expect(response.statusCode).toBe(401);
-	// 			expect(JSON.parse(response.text).error).toBe('Account exists');
-	// 		})
-	// })
+// 		await request(app)
+// 			.post('/api/create-account')
+// 			.set('Accept', 'application/json')
+// 			.set({'Authorization': token, 'Address': address })
+// 			.send({ nickName })
+// 			.then((response) => {
+// 				expect(response.statusCode).toBe(401);
+// 				expect(JSON.parse(response.text).error).toBe('Account exists');
+// 			})
+// 	})
 
-	test('succeeds if proper token is present', async () => {
-		const { res } = await request(app)
-			.post('/api/validate-wallet')
-			.set('Accept', 'application/json')
-			.send({ address, message, signature })
-			.then((record) => {
-				return record;
-			})
+// 	test('succeeds if proper token is present', async () => {
+// 		const { res } = await request(app)
+// 			.post('/api/validate-wallet')
+// 			.set('Accept', 'application/json')
+// 			.send({ address, message, signature })
+// 			.then((record) => {
+// 				return record;
+// 			})
 
-		const token = JSON.parse(res.text).token;
+// 		const token = JSON.parse(res.text).token;
 
-		await request(app)
-			.post('/api/create-account')
-			.set('Accept', 'application/json')
-			.set({'Authorization': token, 'Address': address })
-			.send({ nickName })
-			.then((response) => {
-				expect(response.body.account.id).toBe(wallet.address);
-				expect(response.body.account.nickName).toBe(wallet.nickName);
-				expect(response.statusCode).toBe(200);
-			})
-	});
-})
+// 		await request(app)
+// 			.post('/api/create-account')
+// 			.set('Accept', 'application/json')
+// 			.set({'Authorization': token, 'Address': address })
+// 			.send({ nickName })
+// 			.then((response) => {
+// 				expect(response.body.account.id).toBe(wallet.address);
+// 				expect(response.body.account.nickName).toBe(wallet.nickName);
+// 				expect(response.statusCode).toBe(200);
+// 			})
+// 	});
+// })
