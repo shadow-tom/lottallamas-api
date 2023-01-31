@@ -12,6 +12,10 @@ router.get('/', auth, async (req, res) => {
 
 	const contentRecord = await db.Content.findByPk(contentId);
 
+	if(!contentRecord) {
+		return res.status(404).send({ error: 'Content not found' })
+	}
+
 	if(!req.assets.includes(contentRecord.token)) {
 		return res.status(401).send({ error: 'Token not available in wallet' })
 	}
@@ -30,7 +34,6 @@ router.get('/', auth, async (req, res) => {
 		res.status(500).send({ error })
 	}
 })
-
 
 // GET specific post
 router.get('/:postId', auth, async (req, res) => {
