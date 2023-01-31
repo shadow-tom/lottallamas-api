@@ -78,7 +78,7 @@ router.post('/', auth, async (req, res) => {
 
 router.put('/:contentId', auth, async (req, res) => {
 	const contentId = req.params.contentId;
-	const { title, description, isPublic } = req.body
+	const { title, description, isPublic } = req.body.content;
 
 	if (!title) { return res.status(401).send({ error: 'Missing title' }) }
 

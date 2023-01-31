@@ -127,7 +127,7 @@ describe('POST - Create a content record', () => {
 			.post('/api/content/')
 			.set('Accept', 'application/json')
 			.set({'Authorization': token1, 'Address': testWallet1.address })
-			.send(body)
+			.send({ content: body })
 			.then((response) => {
 				expect(response.statusCode).toBe(401);
 				expect(JSON.parse(response.text).error).toBe('Token not available in wallet')
@@ -143,11 +143,11 @@ describe('POST - Create a content record', () => {
 			isPublic: false,
 			token: 'LLAMAS.test1'
 		}
-		await request(app)
+		request(app)
 			.post('/api/content/')
 			.set('Accept', 'application/json')
 			.set({'Authorization': token1, 'Address': testWallet1.address })
-			.send(body)
+			.send({ content: body })
 			.then((response) => {
 				expect(response.statusCode).toBe(401);
 				expect(JSON.parse(response.text).error).toBe('Token not available in wallet')
@@ -163,11 +163,11 @@ describe('POST - Create a content record', () => {
 			isPublic: false,
 			token: 'LLAMAS.test2'
 		}
-		await request(app)
+		request(app)
 			.post('/api/content/')
 			.set('Accept', 'application/json')
 			.set({'Authorization': token1, 'Address': testWallet1.address })
-			.send(body)
+			.send({ content: body })
 			.then((response) => {
 				expect(response.statusCode).toBe(401);
 				expect(JSON.parse(response.text).error).toBe('Token not available in wallet')
@@ -187,7 +187,7 @@ describe('POST - Create a content record', () => {
 			.post('/api/content/')
 			.set('Accept', 'application/json')
 			.set({'Authorization': token1, 'Address': testWallet1.address })
-			.send(body)
+			.send({ content: body })
 			.then((response) => {
 				expect(response.statusCode).toBe(200);
 				expect(response.body.content.token).toBe('LLAMAS.test3');
@@ -216,7 +216,7 @@ describe('PUT - Update a content record', () => {
 			.put(`/api/content/${content.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token1, 'Address': testWallet1.address })
-			.send(body)
+			.send({ content: body })
 			.then((response) => {
 				expect(response.statusCode).toBe(401);
 				expect(JSON.parse(response.text).error).toBe('Missing title')
@@ -232,11 +232,11 @@ describe('PUT - Update a content record', () => {
 			description: 'test description',
 			isPublic: false,
 		}
-		await request(app)
+		request(app)
 			.put(`/api/content/${content.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token1, 'Address': testWallet1.address })
-			.send(body)
+			.send({ content: body })
 			.then((response) => {
 				expect(response.statusCode).toBe(200);
 				expect(response.body.content[0].title).toBe('test title');
