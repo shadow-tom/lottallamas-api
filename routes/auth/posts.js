@@ -112,12 +112,13 @@ router.put('/:postId', auth, async (req, res) => {
 		}, {
 			where: {
 				id: req.params.postId,
-				walletId: req.address
+				walletId: req.address,
+				isDeleted: false
 			},
-			attributes: { exclude: ['isDeleted'] },
 			returning: true
 		})
 		req.logger.log({ level: 'info', message: `Address: ${req.address} updated post: ${req.params.postId}`});
+		// TODO: make sure to remove isDeleted from response
 		res.status(200).send({ post: content })
 	} catch(error) {
 		req.logger.log({ level: 'error', message: error });
