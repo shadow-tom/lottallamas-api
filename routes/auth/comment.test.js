@@ -103,6 +103,57 @@ describe('POST /api/comments', () => {
 	});
 });
 
+describe('PUT /api/comments/:commentId', () => {
+	test('500 - Comment ID malformed', async () => {
+		const token = await getToken(testWallet1);
+		const comment = await db.Comment.findOne({
+			where: { walletId: testWallet1.address, isDeleted: false }
+		});
+		return request(app)
+			.put(`/api/comments/123`)
+			.set('Accept', 'application/json')
+			.set({'Authorization': token, 'Address': testWallet1.address })
+			.send({ comment: { postId: comment.postId, comment: 'A updated comment' }})
+			.then((response) => {
+				expect(response.statusCode).toBe(500);
+				expect(JSON.parse(response.text).error).toBe('Comment ID malformed');
+			})
+	});
+
+	test('401 - Comment not found', async () => {
+		const token = await getToken(testWallet1);
+		const comment = await db.Comment.findOne({
+			where: { walletId: testWallet1.address, isDeleted: false }
+		});
+		return request(app)
+			.put(`/api/comments/c47cc844-58c0-4abd-813c-6f0c83749fc2`)
+			.set('Accept', 'application/json')
+			.set({'Authorization': token, 'Address': testWallet1.address })
+			.send({ comment: { postId: comment.postId, comment: 'A updated comment' }})
+			.then((response) => {
+				expect(response.statusCode).toBe(401);
+				expect(JSON.parse(response.text).error).toBe('Comment not found');
+			})
+	});
+
+	test('200 - Success', async () => {
+		const token = await getToken(testWallet1);
+		const comment = await db.Comment.findOne({
+			where: { walletId: testWallet1.address, isDeleted: false }
+		});
+		return request(app)
+			.put(`/api/comments/${comment.id}`)
+			.set('Accept', 'application/json')
+			.set({'Authorization': token, 'Address': testWallet1.address })
+			.send({ comment: { postId: comment.postId, comment: 'A updated comment' }})
+			.then((response) => {
+				const record = JSON.parse(response.text).comment;
+				expect(response.statusCode).toBe(200);
+				expect(record.comment).toBe('A updated comment');
+			})
+	});
+});
+
 describe('DELETE /api/comments/:commentId', () => {
 	test('500 - Comment ID malformed', async () => {
 		const token = await getToken(testWallet1);
