@@ -17,20 +17,33 @@ app.use(cors({
 
 // Logging middleware
 app.use((req, res, next) => {
-	if (process.env.NODE_ENV === 'production') {
-		req.logger = winston.createLogger({
-			transports: [
-				new winston.transports.Console(),
-				new winston.transports.File({ filename: 'logs/combined.log' })
-			]
-		});
-	} else {
-		req.logger = winston.createLogger({
-			transports: [
-				new winston.transports.Console(),
-			]
-		});
+	// TODO: Adjust appropriate transports
+	switch (process.env.NODE_ENV) {
+		case 'production':
+			req.logger = winston.createLogger({
+				transports: [
+					new winston.transports.Console(),
+					new winston.transports.File({ filename: 'logs/combined.log' })
+				]
+			});
+			break;
+		case 'development':
+			req.logger = winston.createLogger({
+				transports: [
+					new winston.transports.Console(),
+				]
+			});
+			break;
+		default:
+			req.logger = winston.createLogger({
+				transports: [
+					new winston.transports.Console({
+						silent: true
+					}),
+				]
+			});
 	}
+
 	next()
 })
 
