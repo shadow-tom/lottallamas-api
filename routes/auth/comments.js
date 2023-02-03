@@ -59,4 +59,32 @@ router.post('/', auth, async (req, res) => {
 	}
 })
 
+// DELETE comment
+router.delete('/:commentId', auth, async(req, res) => {
+	try {
+		const { commentId } = req.params;
+
+		if (!uuidValidate(commentId)) { return res.status(500).send({ error: 'Comment ID malformed' })}
+
+		const [row, content] = await db.Comment.update({
+			isDeleted: true,
+		}, {
+			where: {
+				id: commentId,
+				walletId: req.address
+			},
+		})
+
+		if (!row) {
+			return res.status(401).send({ error: 'Comment not found' })
+		}
+
+		req.logger.log({ level: 'info', message: `Address: ${req.address} deleted comment: ${commentId}`});
+		res.status(200).send({ status: 'ok' })
+	} catch (error) {
+		req.logger.log({ level: 'error', message: error });
+		res.status(500).send({ error })
+	}
+})
+
 export default router;
