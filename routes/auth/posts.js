@@ -50,12 +50,13 @@ router.get('/:postId', auth, async (req, res) => {
 				model: db.Comment,
 				as: 'comments',
 				where: { isDeleted: false },
-				attributes: { exclude: ['isDeleted'] }
+				attributes: { exclude: ['isDeleted'] },
+				required: false
 			}, 'Content'],
 			attributes: { exclude: ['isDeleted'] }
 		});
 
-		if (posts && posts.isDeleted) {
+		if (posts === null || posts && posts.isDeleted) {
 			return res.status(401).send({ error: 'Post not found' })
 		}
 
