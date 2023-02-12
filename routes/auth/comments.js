@@ -18,14 +18,12 @@ router.get('/', auth, async (req, res) => {
 	}
 
 	try {
-		let comments
-		if (true) {
-			comments = await db.Comment.findAll({ 
-				where: { postId, isDeleted: false },
-				attributes: { exclude: ['isDeleted'] },
-				order: [['createdAt', 'DESC']]
-			})
-		}
+		const comments = await db.Comment.findAll({ 
+			where: { postId, isDeleted: false },
+			attributes: { exclude: ['isDeleted'] },
+			order: [['createdAt', 'DESC']]
+		})
+
 		req.logger.log({ level: 'info', message: `Address: ${req.address} requesting all comments`});
 		res.status(200).send({ comments })
 	} catch (error) {

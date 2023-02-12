@@ -28,6 +28,53 @@ function getToken(wallet) {
 	})
 }
 
+describe('GET /api/comments', () => {
+	test('401 - Content ID malformed', async () => {
+		const token1 = await getToken(testWallet1);
+		return request(app)
+			.get('/api/comments')
+			.set('Accept', 'application/json')
+			.set({'Authorization': token1, 'Address': testWallet1.address })
+			.then((response) => {
+				expect(response.statusCode).toBe(401);
+				expect(JSON.parse(response.text).error).toBe('Missing contentId or malformed');
+			})
+	});
+
+	test('401 - Post ID malformed', async () => {
+		const token1 = await getToken(testWallet1);
+		return request(app)
+			.get('/api/comments')
+			.query({ contentId: 'Test1' })
+			.set('Accept', 'application/json')
+			.set({'Authorization': token1, 'Address': testWallet1.address })
+			.then((response) => {
+				expect(response.statusCode).toBe(401);
+				expect(JSON.parse(response.text).error).toBe('Missing postId or malformed');
+			})
+	});
+
+	// test('200 - Success', async () => {
+	// 	const token2 = await getToken(testWallet2);
+
+	// 	const comment = await db.Comment.findOne({
+	// 		where: { walletId: testWallet2.address, isDeleted: false }
+	// 	});
+	// console.log(comment)
+	// 	return request(app)
+	// 		.get('/api/comments')
+	// 		.query({ contentId: 'b8a0bae2-a20c-4c0f-a022-2bfb33a888ed', postId: comment.postId })
+	// 		.set('Accept', 'application/json')
+	// 		.set({'Authorization': token2, 'Address': testWallet2.address })
+	// 		.then((response) => {
+	// 			expect(response.statusCode).toBe(200);
+	// 			// const record = JSON.parse(response.text).comment;
+	// 			// expect(record.comment).toBe('A thoughtful comment');
+	// 		})
+	// });
+
+})
+
 describe('POST /api/comments', () => {
 	test('400 - Post ID malformed', async () => {
 		const token1 = await getToken(testWallet1);
