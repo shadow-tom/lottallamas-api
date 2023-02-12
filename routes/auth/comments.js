@@ -9,6 +9,7 @@ router.get('/', auth, async (req, res) => {
 	const { contentId, postId } = req.query
 
 	if(!contentId) { return res.status(401).send({ error: 'Missing contentId or malformed' }) }
+	if(!postId) { return res.status(401).send({ error: 'Missing postId or malformed' }) }
 
 	const contentRecord = await db.Content.findByPk(contentId);
 
@@ -19,7 +20,11 @@ router.get('/', auth, async (req, res) => {
 	try {
 		let comments
 		if (true) {
-			comments = await db.Comment.findAll({ where: { postId }})
+			comments = await db.Comment.findAll({ 
+				where: { postId, isDeleted: false },
+				attributes: { exclude: ['isDeleted'] },
+				order: [['createdAt', 'DESC']]
+			})
 		}
 		req.logger.log({ level: 'info', message: `Address: ${req.address} requesting all comments`});
 		res.status(200).send({ comments })
