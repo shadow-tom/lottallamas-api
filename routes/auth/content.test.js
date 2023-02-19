@@ -232,7 +232,7 @@ describe('PUT - Update a content record', () => {
 			description: 'test description',
 			isPublic: false,
 		}
-		request(app)
+		await request(app)
 			.put(`/api/content/${content.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token1, 'Address': testWallet1.address })

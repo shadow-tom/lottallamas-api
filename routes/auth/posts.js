@@ -8,7 +8,9 @@ import { validate as uuidValidate } from 'uuid';
 router.get('/', auth, async (req, res) => {
 	const { contentId } = req.query
 
-	if(!contentId) { return res.status(401).send({ error: 'Missing contentId or malformed' }) }
+	if(!contentId) { return res.status(401).send({ error: 'Missing content ID' }) }
+
+	if (!uuidValidate(contentId)) { return res.status(401).send({ error: 'Content ID malformed' })}
 
 	const contentRecord = await db.Content.findByPk(contentId);
 
@@ -44,11 +46,17 @@ router.get('/:postId', auth, async (req, res) => {
 		if (!uuidValidate(postId)) { return res.status(401).send({ error: 'Post ID malformed' })}
 	
 		const posts = await db.Post.findByPk(postId, {
-			include: ['comments', 'Content'],
+			include: [{
+				model: db.Comment,
+				as: 'comments',
+				where: { isDeleted: false },
+				attributes: { exclude: ['isDeleted'] },
+				required: false
+			}, 'Content'],
 			attributes: { exclude: ['isDeleted'] }
 		});
 
-		if (posts && posts.isDeleted) {
+		if (posts === null || posts && posts.isDeleted) {
 			return res.status(401).send({ error: 'Post not found' })
 		}
 
@@ -105,12 +113,13 @@ router.put('/:postId', auth, async (req, res) => {
 		}, {
 			where: {
 				id: req.params.postId,
-				walletId: req.address
+				walletId: req.address,
+				isDeleted: false
 			},
-			attributes: { exclude: ['isDeleted'] },
 			returning: true
 		})
 		req.logger.log({ level: 'info', message: `Address: ${req.address} updated post: ${req.params.postId}`});
+		// TODO: make sure to remove isDeleted from response
 		res.status(200).send({ post: content })
 	} catch(error) {
 		req.logger.log({ level: 'error', message: error });

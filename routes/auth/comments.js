@@ -9,6 +9,7 @@ router.get('/', auth, async (req, res) => {
 	const { contentId, postId } = req.query
 
 	if(!contentId) { return res.status(401).send({ error: 'Missing contentId or malformed' }) }
+	if(!postId) { return res.status(401).send({ error: 'Missing postId or malformed' }) }
 
 	const contentRecord = await db.Content.findByPk(contentId);
 
@@ -17,10 +18,12 @@ router.get('/', auth, async (req, res) => {
 	}
 
 	try {
-		let comments
-		if (true) {
-			comments = await db.Comment.findAll({ where: { postId }})
-		}
+		const comments = await db.Comment.findAll({ 
+			where: { postId, isDeleted: false },
+			attributes: { exclude: ['isDeleted'] },
+			order: [['createdAt', 'DESC']]
+		})
+
 		req.logger.log({ level: 'info', message: `Address: ${req.address} requesting all comments`});
 		res.status(200).send({ comments })
 	} catch (error) {
@@ -29,7 +32,7 @@ router.get('/', auth, async (req, res) => {
 	}
 })
 
-// POST comment
+// POST Create comment
 router.post('/', auth, async (req, res) => {
 	try {
 		if (!uuidValidate(req.body.comment.postId)) {
@@ -53,6 +56,66 @@ router.post('/', auth, async (req, res) => {
 		});
 		req.logger.log({ level: 'info', message: `Address: ${req.address} creating comment`});
 		res.status(200).send({ comment: commentRecord })
+	} catch (error) {
+		req.logger.log({ level: 'error', message: error });
+		res.status(500).send({ error })
+	}
+})
+
+// PUT Update comment
+router.put('/:commentId', auth, async(req, res) => {
+	try {
+		const { commentId } = req.params;
+
+		if (!uuidValidate(commentId)) { return res.status(500).send({ error: 'Comment ID malformed' })}
+
+		const [row, record] = await db.Comment.update({
+			comment: req.body.comment.comment
+		}, {
+			where: {
+				id: commentId,
+				walletId: req.address,
+				isDeleted: false
+			},
+			returning: true,
+		})
+
+		if (!row) {
+			return res.status(401).send({ error: 'Comment not found' })
+		}
+
+		req.logger.log({ level: 'info', message: `Address: ${req.address} update comment: ${commentId}`});
+		// TODO: determine better way to do this.  Sequelize is not letting me exclude isDeleted from record
+		const { id, comment, walletId, createdAt, updatedAt } = record[0];
+		res.status(200).send({ comment: { id, comment, walletId, createdAt, updatedAt } })
+	} catch (error) {
+		req.logger.log({ level: 'error', message: error });
+		res.status(500).send({ error })
+	}
+})
+
+// DELETE comment
+router.delete('/:commentId', auth, async(req, res) => {
+	try {
+		const { commentId } = req.params;
+
+		if (!uuidValidate(commentId)) { return res.status(500).send({ error: 'Comment ID malformed' })}
+
+		const [row, content] = await db.Comment.update({
+			isDeleted: true,
+		}, {
+			where: {
+				id: commentId,
+				walletId: req.address
+			},
+		})
+
+		if (!row) {
+			return res.status(401).send({ error: 'Comment not found' })
+		}
+
+		req.logger.log({ level: 'info', message: `Address: ${req.address} deleted comment: ${commentId}`});
+		res.status(200).send({ status: 'ok' })
 	} catch (error) {
 		req.logger.log({ level: 'error', message: error });
 		res.status(500).send({ error })
