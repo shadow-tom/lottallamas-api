@@ -29,20 +29,47 @@ function getToken(wallet) {
 	})
 }
 
-describe('GET - All posts by contentId(query param)', () => {
-	test('401 - Missing contentId', async () => {
+describe('GET - All Public Posts', () => {
+	test('200 - Return empty if no records are public', async () => {
 		const token = await getToken(testWallet1);
 
 		return request(app)
 			.get(`/api/posts`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.then((response) => {
-				expect(response.statusCode).toBe(401);
-				expect(JSON.parse(response.text).error).toBe('Missing content ID');
+			.then(async (response) => {
+				expect(response.statusCode).toBe(200);
+				expect(response.body.posts.length).toBe(0);
 			})
 	});
 
+
+	test('200 - Return Public Posts', async () => {
+		await db.Post.update({ isPublic: true }, {
+			where: {
+				walletId:  testWallet1.address
+			}
+		})
+		const token = await getToken(testWallet1);
+
+		return request(app)
+			.get(`/api/posts`)
+			.set('Accept', 'application/json')
+			.set({'Authorization': token, 'Address': testWallet1.address })
+			.then(async (response) => {
+				expect(response.statusCode).toBe(200);
+				expect(response.body.posts.length).toBe(1);
+				await db.Post.update({ isPublic: false }, {
+					where: {
+						walletId:  testWallet1.address
+					}
+				})
+			})
+	});
+})
+
+
+describe('GET - All posts by contentId(query param)', () => {
 	test('401 - Content ID malformed', async () => {
 		const token = await getToken(testWallet1);
 
