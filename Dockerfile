@@ -2,21 +2,20 @@ FROM node
 
 ENV NODE_ENV=development
 
-RUN mkdir api api/config
+RUN mkdir var/llamas var/llamas/api var/llamas/api/config
 
-VOLUME [ "/Users/eats/Desktop/projects/Llamas/lottallamas-api:/api" ]
+VOLUME [ "/Users/eats/Desktop/projects/Llamas/lottallamas-api:/var/llamas/api" ]
 
-WORKDIR /api
+WORKDIR /var/llamas/api
 
 COPY package*.json ./
 
-COPY /config/config.json /api/config/config.json
+COPY /config/config.json /var/llamas/api/config/config.json
 
 RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm install
 
-ENV PATH=/api/node_modules/.bin:$PATH
+ENV PATH=/var/llamas/api/node_modules/.bin:$PATH
 
-# CMD ["node", "server.js"]
+CMD ["nodemon", "server.js"]
 
-EXPOSE 3100
-
+EXPOSE 3100 5432
