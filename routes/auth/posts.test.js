@@ -43,7 +43,6 @@ describe('GET - All Public Posts', () => {
 			})
 	});
 
-
 	test('200 - Return Public Posts', async () => {
 		await db.Post.update({ isPublic: true }, {
 			where: {
@@ -67,7 +66,6 @@ describe('GET - All Public Posts', () => {
 			})
 	});
 })
-
 
 describe('GET - All posts by contentId(query param)', () => {
 	test('401 - Content ID malformed', async () => {
