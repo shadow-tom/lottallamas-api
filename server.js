@@ -1,5 +1,8 @@
 import express from 'express'
 import cors from 'cors'
+import https from 'https'
+import fs from 'fs'
+
 const app = express()
 
 import auth from './routes/auth.js'
@@ -55,10 +58,23 @@ app.use('/api/content', content);
 app.use('/api/posts', posts);
 app.use('/api/comments', comments);
 
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV === 'development') {
 	app.listen(port, () => {
 		console.log(`Example app listening on port ${port}`)
 	})
+}
+
+if (process.env.NODE_ENV === 'production') {
+	const options = {
+		key: fs.readFileSync(),
+		cert: fs.readFileSync()
+	}
+
+	https
+		.createServer(options, app)
+		.listen(port, () => {
+			console.log(`Example app listening on port ${port}`)
+		})
 }
 
 export default app;
