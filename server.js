@@ -49,7 +49,7 @@ app.use((req, res, next) => {
 })
 
 app.use(express.json()) // for parsing application/json
-app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencode
+app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 app.use('/api', auth);
 app.use('/api/wallets', wallets);
 app.use('/api/content', content);
