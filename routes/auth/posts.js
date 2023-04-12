@@ -6,32 +6,24 @@ import { validate as uuidValidate } from 'uuid';
 
 // GET posts by content ID
 router.get('/', auth, async (req, res) => {
+	const { contentId } = req.query
+
+	if(!contentId) { return res.status(401).send({ error: 'Missing content ID' }) }
+
+	if (!uuidValidate(contentId)) { return res.status(401).send({ error: 'Content ID malformed' })}
+
+	const contentRecord = await db.Content.findByPk(contentId);
+
+	if(!contentRecord) {
+		return res.status(404).send({ error: 'Content not found' })
+	}
+
+	if(!req.assets.includes(contentRecord.token)) {
+		return res.status(401).send({ error: 'Token not available in wallet' })
+	}
+
 	try {
-		const { contentId } = req.query
-
 		let posts
-
-		if(!contentId) {
-			posts = await db.Post.findAll({
-				where: { isPublic: true, isDeleted: false },
-				attributes: { exclude: ['isDeleted'] }
-			})
-			return res.status(200).send({ posts })
-		}
-
-		if (!uuidValidate(contentId)) { return res.status(401).send({ error: 'Content ID malformed' })}
-
-		const contentRecord = await db.Content.findByPk(contentId);
-
-		if(!contentRecord) {
-			return res.status(404).send({ error: 'Content not found' })
-		}
-
-		if(!req.assets.includes(contentRecord.token)) {
-			return res.status(401).send({ error: 'Token not available in wallet' })
-		}
-
-
 		if (contentId) {
 			posts = await db.Post.findAll({
 				where: { contentId, isDeleted: false },
