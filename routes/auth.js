@@ -9,6 +9,13 @@ import https from 'https';
 
 import db from '@lotta-llamas/models'
 
+/**
+ * Get all tokens within wallet
+ * 
+ * @param {string} address Wallet address
+ * @returns {object} Returns the res.status, indicating an error or calls next() if passes 
+ */
+
 async function getWalletBalance(address) {
 	return new Promise((resolve, reject) => {
 		try {
@@ -16,7 +23,7 @@ async function getWalletBalance(address) {
 			https.get(`https://xchain.io/api/balances/${address}`, (res) => {
 				res.on('data', chunk => { data += chunk }) 
 				res.on('end', () => {
-				   resolve(data);
+					resolve(data);
 				})
 			})
 		} catch(error) {
@@ -24,6 +31,18 @@ async function getWalletBalance(address) {
 		}
 	})
 }
+
+/**
+ * POST /api/auth/validate-wallet
+ * @summary a wallet address, signature, and message which is used in validating
+ * wallet possesion.  After validation a JWT is created. This contains the wallets
+ * assets and the wallet address
+ * @param {object} req The Express request object
+ * @param {object} res The Express response object
+ * @return {object} - 200 JWT containing 
+ * @throws {object} - 404 Invalid Message
+ * @throws {object} - 500 Server Error
+ */
 
 router.post('/validate-wallet', verifyWalletBodyParams, async (req, res) => {
 	try {
@@ -49,6 +68,16 @@ router.post('/validate-wallet', verifyWalletBodyParams, async (req, res) => {
 	}
 });
 
+/**
+ * POST /api/auth/create-account
+ * @summary WIP Account creation endpoint.
+ * @param {object} req The Express request object
+ * @param {object} res The Express response object
+ * @return {object} - 200 Record of created wallet
+ * @throws {object} - 500 Server Error
+ */
+
+// TODO: Build out the create endpoint
 router.post('/create-account', auth, async (req, res) => {
 	try {
 		const account = await db.Wallet.create({

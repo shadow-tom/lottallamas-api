@@ -4,7 +4,19 @@ import auth from '../../middleware/auth.js'
 import db from '@lotta-llamas/models';
 import { validate as uuidValidate } from 'uuid';
 
-// GET posts by content ID
+/**
+ * GET /api/auth/posts
+ * @summary Get all private posts in content that is in users wallet
+ * @param {object} req The Express request object
+ * @param {object} res The Express response object
+ * @throws {object} - 401 Missing content ID
+ * @throws {object} - 401 Content ID malformed
+ * @throws {object} - 404 Content not found
+ * @throws {object} - 401 Token not available in wallet
+ * @throws {object} - 500 Server Error
+ * @return {object} - 200 Returns all applicable posts
+ */
+
 router.get('/', auth, async (req, res) => {
 	const { contentId } = req.query
 
@@ -38,7 +50,18 @@ router.get('/', auth, async (req, res) => {
 	}
 })
 
-// GET specific post
+/**
+ * GET /api/auth/posts/:postId
+ * @summary Get specific private post based on content in users wallet
+ * @param {object} req The Express request object
+ * @param {object} res The Express response object
+ * @throws {object} - 401 Post ID malformed
+ * @throws {object} - 401 Post not found
+ * @throws {object} - 401 Token not available in wallet
+ * @throws {object} - 500 Server Error
+ * @return {object} - 200 Returns single post
+ */
+
 router.get('/:postId', auth, async (req, res) => {
 	try {
 		const { postId } = req.params;
@@ -72,7 +95,19 @@ router.get('/:postId', auth, async (req, res) => {
 	}
 })
 
-// POST Create post
+/**
+ * POST /api/auth/posts
+ * @summary Get specific private post in content that is in users wallet
+ * @param {object} req The Express request object
+ * @param {object} res The Express response object
+ * @throws {object} - 401 Missing contentId or malformed
+ * @throws {object} - 401 Missing content
+ * @throws {object} - 401 Missing title
+ * @throws {object} - 401 Token not available in wallet
+ * @throws {object} - 500 Server Error
+ * @return {object} - 200 Creates post and returns post record
+ */
+
 router.post('/', auth, async (req, res) => {
 	const { title, text, contentId, isPublic } = req.body.post
 
@@ -103,7 +138,17 @@ router.post('/', auth, async (req, res) => {
 	}
 })
 
-// PUT Update endpoint
+/**
+ * PUT /api/auth/posts/:postId
+ * @summary Update post that belongs to wallet address
+ * @param {object} req The Express request object
+ * @param {object} res The Express response object
+ * @throws {object} - 401 Missing content
+ * @throws {object} - 401 Missing title
+ * @throws {object} - 500 Server Error
+ * @return {object} - 200 Updates post and returns updated record
+ */
+
 router.put('/:postId', auth, async (req, res) => {
 	if(!req.body.post.title) { return res.status(401).send({ error: 'Missing title' }) }
 	if(!req.body.post.text) { return res.status(401).send({ error: 'Missing content' }) }
@@ -129,7 +174,17 @@ router.put('/:postId', auth, async (req, res) => {
 	}
 })
 
-// DELETE Delete endpoint
+/**
+ * DELETE /api/auth/posts/:postId
+ * @summary Flip isDeleted flag on post, pertains to walletId
+ * @param {object} req The Express request object
+ * @param {object} res The Express response object
+ * @throws {object} - 500 Post ID malformed
+ * @throws {object} - 401 Post not found
+ * @throws {object} - 500 Server Error
+ * @return {object} - 200 Status: OK
+ */
+
 router.delete('/:postId', auth, async(req, res) => {
 	try {
 		const { postId } = req.params;
