@@ -4,4 +4,3 @@ logs/
 .DS_Store 
 app/.DS_Store
 tests/.DS_Store
-.npmrc
