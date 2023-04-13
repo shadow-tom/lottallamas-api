@@ -243,16 +243,24 @@ describe('PUT - Update post', () => {
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
 			.send({ post: { title, text, contentId }})
-			.then((response) => {
+			.then(async (response) => {
 				expect(response.statusCode).toBe(200);
 				expect(response.body.post[0].title).toBe(title);
 				expect(response.body.post[0].text).toBe(text);
+				expect(response.statusCode).toBe(200);
+				// Clean up
+				await db.Post.update({
+					title: 'Post - Test Token 1',
+					text: 'Original Post Text'
+				}, {
+					where: { id: response.body.post[0].id }
+				})
 			})
 	})
 })
 
 describe('DELETE - Delete post', () => {
-	test('500 -Post ID malformed', async () => {
+	test('500 - Post ID malformed', async () => {
 		const token = await getToken(testWallet1);
 
 		return request(app)

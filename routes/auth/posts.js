@@ -74,7 +74,7 @@ router.get('/:postId', auth, async (req, res) => {
 
 // POST Create post
 router.post('/', auth, async (req, res) => {
-	const { title, text, contentId } = req.body.post
+	const { title, text, contentId, isPublic } = req.body.post
 
 	if(!contentId) { return res.status(401).send({ error: 'Missing contentId or malformed' }) }
 	if(!text) { return res.status(401).send({ error: 'Missing content' }) }
@@ -93,6 +93,7 @@ router.post('/', auth, async (req, res) => {
 			text,
 			walletId: req.address,
 			contentId,
+			isPublic
 		});
 		req.logger.log({ level: 'info', message: `Address: ${req.address} created a post`});
 		res.status(200).send({ post: createdRecord })
@@ -109,7 +110,8 @@ router.put('/:postId', auth, async (req, res) => {
 	try {
 		const [row, content] = await db.Post.update({
 			title: req.body.post.title,
-			text: req.body.post.text
+			text: req.body.post.text,
+			isPublic: req.body.post.isPublic
 		}, {
 			where: {
 				id: req.params.postId,

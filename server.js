@@ -3,6 +3,7 @@ import cors from 'cors'
 const app = express()
 
 import auth from './routes/auth.js'
+import publicContent from './routes/public.js'
 import wallets from './routes/auth/wallets.js'
 import content from './routes/auth/content.js'
 import posts from './routes/auth/posts.js'
@@ -53,6 +54,7 @@ app.use('/api', auth);
 app.use('/api/wallets', wallets);
 app.use('/api/content', content);
 app.use('/api/posts', posts);
+app.use('/api/public', publicContent);
 app.use('/api/comments', comments);
 
 if (process.env.NODE_ENV !== 'test') {

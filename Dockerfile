@@ -1,11 +1,21 @@
 FROM node
 
-COPY . /api
+ENV NODE_ENV=development
 
-WORKDIR /api
+RUN mkdir var/llamas var/llamas/api var/llamas/api/config
 
-RUN --mount=type=secret,id=npm,target=/root/.npmrc npm install
+VOLUME [ "/Users/eats/Desktop/projects/Llamas/lottallamas-api:/var/llamas/api" ]
 
-CMD ["node", "server.js"]
+WORKDIR /var/llamas/api
 
-EXPOSE 3100
+COPY package*.json ./
+
+COPY /config/config.json /var/llamas/api/config/config.json
+
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm install
+
+ENV PATH=/var/llamas/api/node_modules/.bin:$PATH
+
+CMD ["nodemon", "server.js"]
+
+EXPOSE 3100 5432

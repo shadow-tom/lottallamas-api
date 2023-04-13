@@ -54,24 +54,28 @@ describe('GET /api/comments', () => {
 			})
 	});
 
-	// test('200 - Success', async () => {
-	// 	const token2 = await getToken(testWallet2);
+	test('200 - Success', async () => {
+		const token2 = await getToken(testWallet2);
 
-	// 	const comment = await db.Comment.findOne({
-	// 		where: { walletId: testWallet2.address, isDeleted: false }
-	// 	});
-	// console.log(comment)
-	// 	return request(app)
-	// 		.get('/api/comments')
-	// 		.query({ contentId: 'b8a0bae2-a20c-4c0f-a022-2bfb33a888ed', postId: comment.postId })
-	// 		.set('Accept', 'application/json')
-	// 		.set({'Authorization': token2, 'Address': testWallet2.address })
-	// 		.then((response) => {
-	// 			expect(response.statusCode).toBe(200);
-	// 			// const record = JSON.parse(response.text).comment;
-	// 			// expect(record.comment).toBe('A thoughtful comment');
-	// 		})
-	// });
+		const content = await db.Content.findOne({
+			where: { walletId: testWallet2.address }
+		});
+
+		const comment = await db.Comment.findOne({
+			where: { walletId: testWallet2.address, isDeleted: false }
+		});
+
+		return request(app)
+			.get('/api/comments')
+			.query({ contentId: content.id, postId: comment.postId })
+			.set('Accept', 'application/json')
+			.set({'Authorization': token2, 'Address': testWallet2.address })
+			.then((response) => {
+				expect(response.statusCode).toBe(200);
+				const record = JSON.parse(response.text);
+				expect(record.comments[0].comment).toBe(comment.comment);
+			})
+	});
 
 })
 
