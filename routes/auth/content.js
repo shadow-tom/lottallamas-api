@@ -5,7 +5,15 @@ import db from '@lotta-llamas/models';
 import Sequelize from 'sequelize';
 import { validate as uuidValidate } from 'uuid';
 
-// GET Content
+/**
+ * GET /api/auth/content
+ * @summary Get all content objects that pertain to assets in wallet
+ * @param {object} req The Express request object
+ * @param {object} res The Express response object
+ * @throws {object} - 500 Server Error
+ * @return {object} - 200 Returns all applicable content
+ */
+
 router.get('/', auth, async (req, res) => {
 	try {
 		const content = await db.Content.findAll({ 
@@ -23,7 +31,17 @@ router.get('/', auth, async (req, res) => {
 	}
 })
 
-// GET Content by contentId
+/**
+ * GET /api/auth/content/:contentId
+ * @summary Get specific content object
+ * @param {object} req The Express request object
+ * @param {object} res The Express response object
+ * @throws {object} - 400 Content ID malformed
+ * @throws {object} - 401 Token not available in wallet
+ * @throws {object} - 500 Server Error
+ * @return {object} - 200 Returns singular content object
+ */
+
 router.get('/:contentId', auth, async (req, res) => {
 	try {
 		const { contentId } = req.params;
@@ -45,7 +63,17 @@ router.get('/:contentId', auth, async (req, res) => {
 	}
 })
 
-// POST Create Content
+/**
+ * POST /api/auth/content
+ * @summary Create specific content object
+ * @param {object} req The Express request object
+ * @param {object} res The Express response object
+ * @throws {object} - 401 Token must be unique
+ * @throws {object} - 401 Token not available in wallet
+ * @throws {object} - 500 Server Error
+ * @return {object} - 200 Creates content record and returns updated record
+ */
+
 router.post('/', auth, async (req, res) => {
 	const { title, description, isPublic, token } = req.body.content
 	// Determine what assets are in the db that belong to your walletId
@@ -79,6 +107,16 @@ router.post('/', auth, async (req, res) => {
 		res.status(500).send({ error })
 	}
 })
+
+/**
+ * PUT /api/auth/content/:contentId
+ * @summary Updates specific content object
+ * @param {object} req The Express request object
+ * @param {object} res The Express response object
+ * @throws {object} - 401 Missing title
+ * @throws {object} - 500 Server Error
+ * @return {object} - 200 Updates record and returns updated record
+ */
 
 router.put('/:contentId', auth, async (req, res) => {
 	const contentId = req.params.contentId;

@@ -1,5 +1,16 @@
 import jwt from 'jsonwebtoken';
 
+/**
+ * @module auth
+ * Determines if the token on the request object is valid and sets the decoded
+ * properties on the request object and calls next()
+ * 
+ * @param {object} req The Express request object
+ * @param {object} res The Express response object
+ * @param {object} next The Express response object
+ * @returns {object} Returns the res.status, indicating an error or calls next() if passes 
+ */
+
 export default function auth (req, res, next) {
 	if (!req.headers) {
 		return res.status(401).send({ error: 'Missing headers' })
