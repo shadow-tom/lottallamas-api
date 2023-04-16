@@ -19,7 +19,7 @@ import { validate as uuidValidate } from 'uuid';
  * @return {object} - 200 Returns all comments that pertain to the post
  */
 
-router.get('/', auth, async (req, res) => {
+router.get('/', auth, async (req, res, next) => {
 	const { contentId, postId } = req.query
 
 	if(!contentId) { return res.status(401).send({ error: 'Missing contentId or malformed' }) }
@@ -41,8 +41,7 @@ router.get('/', auth, async (req, res) => {
 		req.logger.log({ level: 'info', message: `Address: ${req.address} requesting all comments`});
 		res.status(200).send({ comments })
 	} catch (error) {
-		req.logger.log({ level: 'error', message: error });
-		res.status(500).send({ error })
+		next(new Error(error))
 	}
 })
 
@@ -61,7 +60,7 @@ router.get('/', auth, async (req, res) => {
  * @return {object} - 200 Creates comment and returns comment record
  */
 
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, async (req, res, next) => {
 	try {
 		if (!uuidValidate(req.body.comment.postId)) {
 			return res.status(400).send({ error: 'Post ID malformed' })
@@ -85,8 +84,7 @@ router.post('/', auth, async (req, res) => {
 		req.logger.log({ level: 'info', message: `Address: ${req.address} creating comment`});
 		res.status(200).send({ comment: commentRecord })
 	} catch (error) {
-		req.logger.log({ level: 'error', message: error });
-		res.status(500).send({ error })
+		next(new Error(error))
 	}
 })
 
@@ -102,7 +100,7 @@ router.post('/', auth, async (req, res) => {
  * @return {object} - 200 Updates comment and returns updated record
  */
 
-router.put('/:commentId', auth, async(req, res) => {
+router.put('/:commentId', auth, async(req, res, next) => {
 	try {
 		const { commentId } = req.params;
 
@@ -128,8 +126,7 @@ router.put('/:commentId', auth, async(req, res) => {
 		const { id, comment, walletId, createdAt, updatedAt } = record[0];
 		res.status(200).send({ comment: { id, comment, walletId, createdAt, updatedAt } })
 	} catch (error) {
-		req.logger.log({ level: 'error', message: error });
-		res.status(500).send({ error })
+		next(new Error(error))
 	}
 })
 
@@ -145,7 +142,7 @@ router.put('/:commentId', auth, async(req, res) => {
  * @return {object} - 200 Status: OK
  */
 
-router.delete('/:commentId', auth, async(req, res) => {
+router.delete('/:commentId', auth, async(req, res, next) => {
 	try {
 		const { commentId } = req.params;
 
@@ -167,8 +164,7 @@ router.delete('/:commentId', auth, async(req, res) => {
 		req.logger.log({ level: 'info', message: `Address: ${req.address} deleted comment: ${commentId}`});
 		res.status(200).send({ status: 'ok' })
 	} catch (error) {
-		req.logger.log({ level: 'error', message: error });
-		res.status(500).send({ error })
+		next(new Error(error))
 	}
 })
 

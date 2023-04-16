@@ -17,7 +17,7 @@ import { validate as uuidValidate } from 'uuid';
  * @return {object} - 200 Returns all applicable posts
  */
 
-router.get('/', auth, async (req, res) => {
+router.get('/', auth, async (req, res, next) => {
 	const { contentId } = req.query
 
 	if(!contentId) { return res.status(401).send({ error: 'Missing content ID' }) }
@@ -45,8 +45,7 @@ router.get('/', auth, async (req, res) => {
 		req.logger.log({ level: 'info', message: `Address: ${req.address} requesting all posts`});
 		res.status(200).send({ posts })
 	} catch (error) {
-		req.logger.log({ level: 'error', message: error });
-		res.status(500).send({ error })
+		next(new Error(error))
 	}
 })
 
@@ -62,7 +61,7 @@ router.get('/', auth, async (req, res) => {
  * @return {object} - 200 Returns single post
  */
 
-router.get('/:postId', auth, async (req, res) => {
+router.get('/:postId', auth, async (req, res, next) => {
 	try {
 		const { postId } = req.params;
 
@@ -90,8 +89,7 @@ router.get('/:postId', auth, async (req, res) => {
 			res.status(200).send({ posts })
 		}
 	} catch (error) {
-		req.logger.log({ level: 'error', message: error });
-		res.status(500).send({ error })
+		next(new Error(error))
 	}
 })
 
@@ -108,7 +106,7 @@ router.get('/:postId', auth, async (req, res) => {
  * @return {object} - 200 Creates post and returns post record
  */
 
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, async (req, res, next) => {
 	const { title, text, contentId, isPublic } = req.body.post
 
 	if(!contentId) { return res.status(401).send({ error: 'Missing contentId or malformed' }) }
@@ -133,8 +131,7 @@ router.post('/', auth, async (req, res) => {
 		req.logger.log({ level: 'info', message: `Address: ${req.address} created a post`});
 		res.status(200).send({ post: createdRecord })
 	} catch (error) {
-		req.logger.log({ level: 'error', message: error });
-		res.status(500).send({ error })
+		next(new Error(error))
 	}
 })
 
@@ -149,7 +146,7 @@ router.post('/', auth, async (req, res) => {
  * @return {object} - 200 Updates post and returns updated record
  */
 
-router.put('/:postId', auth, async (req, res) => {
+router.put('/:postId', auth, async (req, res, next) => {
 	if(!req.body.post.title) { return res.status(401).send({ error: 'Missing title' }) }
 	if(!req.body.post.text) { return res.status(401).send({ error: 'Missing content' }) }
 	try {
@@ -169,8 +166,7 @@ router.put('/:postId', auth, async (req, res) => {
 		// TODO: make sure to remove isDeleted from response
 		res.status(200).send({ post: content })
 	} catch(error) {
-		req.logger.log({ level: 'error', message: error });
-		res.status(500).send({ error })
+		next(new Error(error))
 	}
 })
 
@@ -185,7 +181,7 @@ router.put('/:postId', auth, async (req, res) => {
  * @return {object} - 200 Status: OK
  */
 
-router.delete('/:postId', auth, async(req, res) => {
+router.delete('/:postId', auth, async(req, res, next) => {
 	try {
 		const { postId } = req.params;
 
@@ -207,8 +203,7 @@ router.delete('/:postId', auth, async(req, res) => {
 		req.logger.log({ level: 'info', message: `Address: ${req.address} deleted post: ${postId}`});
 		res.status(200).send({ status: 'ok' })
 	} catch (error) {
-		req.logger.log({ level: 'error', message: error });
-		res.status(500).send({ error })
+		next(new Error(error))
 	}
 })
 
