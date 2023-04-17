@@ -67,8 +67,8 @@ router.get('/:contentId', auth, async (req, res, next) => {
  * @summary Create specific content object
  * @param {object} req The Express request object
  * @param {object} res The Express response object
- * @throws {object} - 401 Token must be unique
  * @throws {object} - 401 Token not available in wallet
+ * @throws {object} - 409 Token must be unique
  * @throws {object} - 500 Server Error
  * @return {object} - 200 Creates content record and returns updated record
  */
@@ -90,7 +90,7 @@ router.post('/', auth, async (req, res, next) => {
 		// Determine if the token exists at all in the db
 		const tokenInDb = await db.Content.findOne({ where: { token }})
 		// Handle uniqueness
-		if (tokenInDb) { return res.status(401).send({ error: 'Token must be unique' }) }
+		if (tokenInDb) { return res.status(409).send({ error: 'Token must be unique' }) }
 
 		const content = await db.Content.create({
 			walletId: req.address,
@@ -111,7 +111,7 @@ router.post('/', auth, async (req, res, next) => {
  * @summary Updates specific content object
  * @param {object} req The Express request object
  * @param {object} res The Express response object
- * @throws {object} - 401 Missing title
+ * @throws {object} - 400 Missing title
  * @throws {object} - 500 Server Error
  * @return {object} - 200 Updates record and returns updated record
  */
@@ -120,7 +120,7 @@ router.put('/:contentId', auth, async (req, res, next) => {
 	const contentId = req.params.contentId;
 	const { title, description, isPublic } = req.body.content;
 
-	if (!title) { return res.status(401).send({ error: 'Missing title' }) }
+	if (!title) { return res.status(400).send({ error: 'Missing title' }) }
 
 	try {
 		const [row, content] = await db.Content.update({

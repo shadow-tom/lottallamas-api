@@ -12,8 +12,8 @@ import { validate as uuidValidate } from 'uuid';
  * @param {string} req.query.contentId - UUID for content
  * @param {string} req.query.postId - UUID for post
  * @param {object} res - The Express response object
- * @throws {object} - 401 Missing contentId or malformed
- * @throws {object} - 401 Missing postId or malformed
+ * @throws {object} - 400 Missing contentId or malformed
+ * @throws {object} - 400 Missing postId or malformed
  * @throws {object} - 401 Token not available in wallet
  * @throws {object} - 500 Server Error
  * @return {object} - 200 Returns all comments that pertain to the post
@@ -22,8 +22,8 @@ import { validate as uuidValidate } from 'uuid';
 router.get('/', auth, async (req, res, next) => {
 	const { contentId, postId } = req.query
 
-	if(!contentId) { return res.status(401).send({ error: 'Missing contentId or malformed' }) }
-	if(!postId) { return res.status(401).send({ error: 'Missing postId or malformed' }) }
+	if(!contentId) { return res.status(400).send({ error: 'Missing contentId or malformed' }) }
+	if(!postId) { return res.status(400).send({ error: 'Missing postId or malformed' }) }
 
 	const contentRecord = await db.Content.findByPk(contentId);
 
@@ -52,10 +52,10 @@ router.get('/', auth, async (req, res, next) => {
  * @param {array} req.assets - List of available assets within wallet
  * @param {object} req.body.comment - comment object
  * @param {object} res - The Express response object
- * @throws {object} - 401 Post ID malformed
- * @throws {object} - 401 Post not found
+ * @throws {object} - 400 Post ID malformed
+ * @throws {object} - 404 Post not found
  * @throws {object} - 401 Token not available in wallet
- * @throws {object} - 401 No comment present
+ * @throws {object} - 400 No comment present
  * @throws {object} - 500 Server Error
  * @return {object} - 200 Creates comment and returns comment record
  */
@@ -75,12 +75,13 @@ router.post('/', auth, async (req, res, next) => {
 		const { comment } = req.body.comment
 
 		if(!req.assets.includes(post.Content.token)) { return res.status(401).send({ error: 'Token not available in wallet' }) }
-		if(!comment) { return res.status(401).send({ error: 'No comment present' }) }
+		if(!comment) { return res.status(400).send({ error: 'No comment present' }) }
 
 		const commentRecord = await post.createComment({
 			comment,
 			walletId: req.address
 		});
+
 		req.logger.log({ level: 'info', message: `Address: ${req.address} creating comment`});
 		res.status(200).send({ comment: commentRecord })
 	} catch (error) {
@@ -94,8 +95,8 @@ router.post('/', auth, async (req, res, next) => {
  * @param {object} req The Express request object
  * @param {object} req.params.commentId UUID for comment
  * @param {object} res The Express response object
- * @throws {object} - 500 Comment ID malformed
- * @throws {object} - 401 Comment not found
+ * @throws {object} - 400 Comment ID malformed
+ * @throws {object} - 404 Comment not found
  * @throws {object} - 500 Server Error
  * @return {object} - 200 Updates comment and returns updated record
  */
@@ -104,7 +105,7 @@ router.put('/:commentId', auth, async(req, res, next) => {
 	try {
 		const { commentId } = req.params;
 
-		if (!uuidValidate(commentId)) { return res.status(500).send({ error: 'Comment ID malformed' })}
+		if (!uuidValidate(commentId)) { return res.status(400).send({ error: 'Comment ID malformed' })}
 
 		const [row, record] = await db.Comment.update({
 			comment: req.body.comment.comment
@@ -118,7 +119,7 @@ router.put('/:commentId', auth, async(req, res, next) => {
 		})
 
 		if (!row) {
-			return res.status(401).send({ error: 'Comment not found' })
+			return res.status(404).send({ error: 'Comment not found' })
 		}
 
 		req.logger.log({ level: 'info', message: `Address: ${req.address} update comment: ${commentId}`});
@@ -136,8 +137,8 @@ router.put('/:commentId', auth, async(req, res, next) => {
  * @param {object} req The Express request object
  * @param {object} req.params.commentId UUID for comment
  * @param {object} res The Express response object
- * @throws {object} - 500 Comment ID malformed
- * @throws {object} - 401 Comment not found
+ * @throws {object} - 400 Comment ID malformed
+ * @throws {object} - 404 Comment not found
  * @throws {object} - 500 Server Error
  * @return {object} - 200 Status: OK
  */
@@ -146,7 +147,7 @@ router.delete('/:commentId', auth, async(req, res, next) => {
 	try {
 		const { commentId } = req.params;
 
-		if (!uuidValidate(commentId)) { return res.status(500).send({ error: 'Comment ID malformed' })}
+		if (!uuidValidate(commentId)) { return res.status(400).send({ error: 'Comment ID malformed' })}
 
 		const [row, content] = await db.Comment.update({
 			isDeleted: true,
@@ -158,7 +159,7 @@ router.delete('/:commentId', auth, async(req, res, next) => {
 		})
 
 		if (!row) {
-			return res.status(401).send({ error: 'Comment not found' })
+			return res.status(404).send({ error: 'Comment not found' })
 		}
 
 		req.logger.log({ level: 'info', message: `Address: ${req.address} deleted comment: ${commentId}`});
