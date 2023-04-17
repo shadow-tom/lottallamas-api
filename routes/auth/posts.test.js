@@ -30,7 +30,7 @@ function getToken(wallet) {
 }
 
 describe('GET - All posts by contentId(query param)', () => {
-	test('401 - Missing contentId', async () => {
+	test('400 - Missing contentId', async () => {
 		const token = await getToken(testWallet1);
 
 		return request(app)
@@ -38,12 +38,12 @@ describe('GET - All posts by contentId(query param)', () => {
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
 			.then((response) => {
-				expect(response.statusCode).toBe(401);
+				expect(response.statusCode).toBe(400);
 				expect(JSON.parse(response.text).error).toBe('Missing content ID');
 			})
 	});
 
-	test('401 - Content ID malformed', async () => {
+	test('400 - Content ID malformed', async () => {
 		const token = await getToken(testWallet1);
 
 		return request(app)
@@ -51,7 +51,7 @@ describe('GET - All posts by contentId(query param)', () => {
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
 			.then((response) => {
-				expect(response.statusCode).toBe(401);
+				expect(response.statusCode).toBe(400);
 				expect(JSON.parse(response.text).error).toBe('Content ID malformed');
 			})
 	});
@@ -99,7 +99,7 @@ describe('GET - All posts by contentId(query param)', () => {
 });
 
 describe('GET - Specific post', () => {
-	test('401 - Post ID malformed', async () => {
+	test('400 - Post ID malformed', async () => {
 		const token = await getToken(testWallet1);
 
 		return request(app)
@@ -107,8 +107,22 @@ describe('GET - Specific post', () => {
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
 			.then((response) => {
-				expect(response.statusCode).toBe(401);
+				expect(response.statusCode).toBe(400);
 				expect(JSON.parse(response.text).error).toBe('Post ID malformed');
+			})
+	});
+
+	test('404 - Post not found', async () => {
+		const token = await getToken(testWallet2);
+		const post = await db.Post.findOne({ where: { walletId: testWallet1.address }});
+
+		return request(app)
+			.get(`/api/posts/6b9ed939-b16d-4a10-9dff-ed0ddee3600f`)
+			.set('Accept', 'application/json')
+			.set({'Authorization': token, 'Address': testWallet2.address })
+			.then((response) => {
+				expect(response.statusCode).toBe(404);
+				expect(JSON.parse(response.text).error).toBe('Post not found');
 			})
 	});
 
@@ -142,8 +156,7 @@ describe('GET - Specific post', () => {
 });
 
 describe('POST - Create new post', () => {
-	test('401 - Missing contentId', async () => {
-
+	test('400 - Missing contentId', async () => {
 		const title = 'A new test post'
 		const text = 'New test post'
 		const token = await getToken(testWallet1);
@@ -154,12 +167,12 @@ describe('POST - Create new post', () => {
 			.set({'Authorization': token, 'Address': testWallet1.address })
 			.send({ post: { title, text }})
 			.then((response) => {
-				expect(response.statusCode).toBe(401);
+				expect(response.statusCode).toBe(400);
 				expect(JSON.parse(response.text).error).toBe('Missing contentId or malformed');
 			})
 	})
 
-	test('401 - Missing message', async () => {
+	test('400 - Missing content', async () => {
 		const token = await getToken(testWallet1);
 		const content = await db.Content.findOne({ where: { walletId: testWallet1.address }});
 
@@ -169,12 +182,12 @@ describe('POST - Create new post', () => {
 			.set({'Authorization': token, 'Address': testWallet1.address })
 			.send({ post: { contentId: content.id, text: null }})
 			.then((response) => {
-				expect(response.statusCode).toBe(401);
+				expect(response.statusCode).toBe(400);
 				expect(JSON.parse(response.text).error).toBe('Missing content');
 			})
 	})
 
-	test('401 - Missing title', async () => {
+	test('400 - Missing title', async () => {
 		const token = await getToken(testWallet1);
 		const content = await db.Content.findOne({ where: { walletId: testWallet1.address }});
 
@@ -184,8 +197,23 @@ describe('POST - Create new post', () => {
 			.set({'Authorization': token, 'Address': testWallet1.address })
 			.send({ post: { title: null, contentId: content.id, text: 'test content' }})
 			.then((response) => {
-				expect(response.statusCode).toBe(401);
+				expect(response.statusCode).toBe(400);
 				expect(JSON.parse(response.text).error).toBe('Missing title');
+			})
+	})
+
+	test('401 - Token not available in wallet', async () => {
+		const token = await getToken(testWallet1);
+		const content = await db.Content.findOne({ where: { walletId: testWallet2.address }});
+
+		return request(app)
+			.post(`/api/posts/`)
+			.set('Accept', 'application/json')
+			.set({'Authorization': token, 'Address': testWallet1.address })
+			.send({ post: { title: 'TEST', text: 'TEST', contentId: content.id, isPublic: false }})
+			.then((response) => {
+				expect(response.statusCode).toBe(401);
+				expect(JSON.parse(response.text).error).toBe('Token not available in wallet');
 			})
 	})
 
@@ -214,9 +242,8 @@ describe('POST - Create new post', () => {
 })
 
 describe('PUT - Update post', () => {
-	test('401 - Missing text', async () => {
+	test('400 - Missing title', async () => {
 		const token = await getToken(testWallet1);
-		const title = 'A test title'
 		const post = await db.Post.findOne({ where: { walletId: testWallet1.address }})
 		const contentId = await db.Content.findOne({ where: { walletId: testWallet1.address }});
 
@@ -224,9 +251,25 @@ describe('PUT - Update post', () => {
 			.put(`/api/posts/${post.id}`)
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
-			.send({ post: { title, text: null, contentId: contentId.id } })
+			.send({ post: { title: null, text: 'Post content', contentId: contentId.id } })
 			.then((response) => {
-				expect(response.statusCode).toBe(401);
+				expect(response.statusCode).toBe(400);
+				expect(JSON.parse(response.text).error).toBe('Missing title');
+			})
+	})
+
+	test('400 - Missing text', async () => {
+		const token = await getToken(testWallet1);
+		const post = await db.Post.findOne({ where: { walletId: testWallet1.address }})
+		const contentId = await db.Content.findOne({ where: { walletId: testWallet1.address }});
+
+		return request(app)
+			.put(`/api/posts/${post.id}`)
+			.set('Accept', 'application/json')
+			.set({'Authorization': token, 'Address': testWallet1.address })
+			.send({ post: { title: 'A test title', text: null, contentId: contentId.id } })
+			.then((response) => {
+				expect(response.statusCode).toBe(400);
 				expect(JSON.parse(response.text).error).toBe('Missing content');
 			})
 	})
@@ -260,7 +303,7 @@ describe('PUT - Update post', () => {
 })
 
 describe('DELETE - Delete post', () => {
-	test('500 - Post ID malformed', async () => {
+	test('400 - Post ID malformed', async () => {
 		const token = await getToken(testWallet1);
 
 		return request(app)
@@ -268,12 +311,12 @@ describe('DELETE - Delete post', () => {
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
 			.then((response) => {
-				expect(response.statusCode).toBe(500);
+				expect(response.statusCode).toBe(400);
 				expect(JSON.parse(response.text).error).toBe('Post ID malformed');
 			})
 	})
 
-	test('401 - Post not found', async () => {
+	test('404 - Post not found', async () => {
 		const token = await getToken(testWallet1);
 
 		return request(app)
@@ -281,7 +324,7 @@ describe('DELETE - Delete post', () => {
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
 			.then((response) => {
-				expect(response.statusCode).toBe(401);
+				expect(response.statusCode).toBe(404);
 				expect(JSON.parse(response.text).error).toBe('Post not found');
 			})
 	})

@@ -12,7 +12,7 @@ import db from '@lotta-llamas/models';
  */
 
 // TODO: Query params and probably limit count.  This should be more of a feed.
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
 	try {
 		const posts = await db.Post.findAll({
 			where: { isPublic: true, isDeleted: false },
@@ -21,8 +21,7 @@ router.get('/', async (req, res) => {
 
 		return res.status(200).send({ posts })
 	} catch(error) {
-		req.logger.log({ level: 'error', message: error });
-		res.status(500).send({ error })
+		next(new Error(error))
 	}
 })
 

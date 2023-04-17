@@ -205,7 +205,7 @@ describe('PUT - Update a content record', () => {
 		})
 	});
 
-	test('401 - Missing title', async () => {
+	test('400 - Missing title', async () => {
 		const token1 = await getToken(testWallet1);
 		const content = await db.Content.findOne({ where: { walletId: testWallet1.address }})
 		const body = {
@@ -218,7 +218,7 @@ describe('PUT - Update a content record', () => {
 			.set({'Authorization': token1, 'Address': testWallet1.address })
 			.send({ content: body })
 			.then((response) => {
-				expect(response.statusCode).toBe(401);
+				expect(response.statusCode).toBe(400);
 				expect(JSON.parse(response.text).error).toBe('Missing title')
 			})
 	})

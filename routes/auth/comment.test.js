@@ -29,19 +29,19 @@ function getToken(wallet) {
 }
 
 describe('GET /api/comments', () => {
-	test('401 - Content ID malformed', async () => {
+	test('400 - Missing contentId or malformed', async () => {
 		const token1 = await getToken(testWallet1);
 		return request(app)
 			.get('/api/comments')
 			.set('Accept', 'application/json')
 			.set({'Authorization': token1, 'Address': testWallet1.address })
 			.then((response) => {
-				expect(response.statusCode).toBe(401);
+				expect(response.statusCode).toBe(400);
 				expect(JSON.parse(response.text).error).toBe('Missing contentId or malformed');
 			})
 	});
 
-	test('401 - Post ID malformed', async () => {
+	test('400 - Missing postId or malformed', async () => {
 		const token1 = await getToken(testWallet1);
 		return request(app)
 			.get('/api/comments')
@@ -49,8 +49,30 @@ describe('GET /api/comments', () => {
 			.set('Accept', 'application/json')
 			.set({'Authorization': token1, 'Address': testWallet1.address })
 			.then((response) => {
-				expect(response.statusCode).toBe(401);
+				expect(response.statusCode).toBe(400);
 				expect(JSON.parse(response.text).error).toBe('Missing postId or malformed');
+			})
+	});
+
+	test('401 - Token not available in wallet', async () => {
+		const token1 = await getToken(testWallet1);
+
+		const content = await db.Content.findOne({
+			where: { walletId: testWallet2.address }
+		});
+
+		const comment = await db.Comment.findOne({
+			where: { walletId: testWallet2.address, isDeleted: false }
+		});
+
+		return request(app)
+			.get('/api/comments')
+			.query({ contentId: content.id, postId: comment.postId })
+			.set('Accept', 'application/json')
+			.set({'Authorization': token1, 'Address': testWallet1.address })
+			.then((response) => {
+				expect(response.statusCode).toBe(401);
+				expect(JSON.parse(response.text).error).toBe('Token not available in wallet');
 			})
 	});
 
@@ -120,7 +142,7 @@ describe('POST /api/comments', () => {
 			})
 	});
 
-	test('401 - No comment present', async () => {
+	test('400 - No comment present', async () => {
 		const token = await getToken(testWallet1);
 		const post = await db.Post.findOne({ where: { walletId: testWallet1.address }});
 		return request(app)
@@ -129,7 +151,7 @@ describe('POST /api/comments', () => {
 			.set({'Authorization': token, 'Address': testWallet1.address })
 			.send({ comment: { postId: post.id, comment: null }})
 			.then((response) => {
-				expect(response.statusCode).toBe(401);
+				expect(response.statusCode).toBe(400);
 				expect(JSON.parse(response.text).error).toBe('No comment present');
 			})
 	});
@@ -155,7 +177,7 @@ describe('POST /api/comments', () => {
 });
 
 describe('PUT /api/comments/:commentId', () => {
-	test('500 - Comment ID malformed', async () => {
+	test('400 - Comment ID malformed', async () => {
 		const token = await getToken(testWallet1);
 		const comment = await db.Comment.findOne({
 			where: { walletId: testWallet1.address, isDeleted: false }
@@ -166,12 +188,12 @@ describe('PUT /api/comments/:commentId', () => {
 			.set({'Authorization': token, 'Address': testWallet1.address })
 			.send({ comment: { postId: comment.postId, comment: 'A updated comment' }})
 			.then((response) => {
-				expect(response.statusCode).toBe(500);
+				expect(response.statusCode).toBe(400);
 				expect(JSON.parse(response.text).error).toBe('Comment ID malformed');
 			})
 	});
 
-	test('401 - Comment not found', async () => {
+	test('404 - Comment not found', async () => {
 		const token = await getToken(testWallet1);
 		const comment = await db.Comment.findOne({
 			where: { walletId: testWallet1.address, isDeleted: false }
@@ -182,7 +204,7 @@ describe('PUT /api/comments/:commentId', () => {
 			.set({'Authorization': token, 'Address': testWallet1.address })
 			.send({ comment: { postId: comment.postId, comment: 'A updated comment' }})
 			.then((response) => {
-				expect(response.statusCode).toBe(401);
+				expect(response.statusCode).toBe(404);
 				expect(JSON.parse(response.text).error).toBe('Comment not found');
 			})
 	});
@@ -206,26 +228,26 @@ describe('PUT /api/comments/:commentId', () => {
 });
 
 describe('DELETE /api/comments/:commentId', () => {
-	test('500 - Comment ID malformed', async () => {
+	test('400 - Comment ID malformed', async () => {
 		const token = await getToken(testWallet1);
 		return request(app)
 			.delete('/api/comments/borked')
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
 			.then( async (response) => {
-				expect(response.statusCode).toBe(500);
+				expect(response.statusCode).toBe(400);
 				expect(JSON.parse(response.text).error).toBe('Comment ID malformed');
 			})
 	});
 
-	test('401 - Comment not found', async () => {
+	test('404 - Comment not found', async () => {
 		const token = await getToken(testWallet1);
 		return request(app)
 			.delete('/api/comments/41a5d1cc-1de5-4d71-9d05-e92cc51f34bb')
 			.set('Accept', 'application/json')
 			.set({'Authorization': token, 'Address': testWallet1.address })
 			.then( async (response) => {
-				expect(response.statusCode).toBe(401);
+				expect(response.statusCode).toBe(404);
 				expect(JSON.parse(response.text).error).toBe('Comment not found');
 			})
 	});

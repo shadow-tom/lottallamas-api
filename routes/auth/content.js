@@ -42,7 +42,7 @@ router.get('/', auth, async (req, res) => {
  * @return {object} - 200 Returns singular content object
  */
 
-router.get('/:contentId', auth, async (req, res) => {
+router.get('/:contentId', auth, async (req, res, next) => {
 	try {
 		const { contentId } = req.params;
 	
@@ -58,8 +58,7 @@ router.get('/:contentId', auth, async (req, res) => {
 		req.logger.log({ level: 'info', message: `Address: ${req.address} GET'n content: ${contentId}`});
 		res.status(200).send({ content })
 	} catch(error) {
-		req.logger.log({ level: 'error', message: error });
-		res.status(500).send({ error })
+		next(new Error(error))
 	}
 })
 
@@ -68,13 +67,13 @@ router.get('/:contentId', auth, async (req, res) => {
  * @summary Create specific content object
  * @param {object} req The Express request object
  * @param {object} res The Express response object
- * @throws {object} - 401 Token must be unique
  * @throws {object} - 401 Token not available in wallet
+ * @throws {object} - 409 Token must be unique
  * @throws {object} - 500 Server Error
  * @return {object} - 200 Creates content record and returns updated record
  */
 
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, async (req, res, next) => {
 	const { title, description, isPublic, token } = req.body.content
 	// Determine what assets are in the db that belong to your walletId
 	const tokensObjsInUse = await db.Content.findAll({ attributes: ['token'], where: { walletId: req.address } })
@@ -91,7 +90,7 @@ router.post('/', auth, async (req, res) => {
 		// Determine if the token exists at all in the db
 		const tokenInDb = await db.Content.findOne({ where: { token }})
 		// Handle uniqueness
-		if (tokenInDb) { return res.status(401).send({ error: 'Token must be unique' }) }
+		if (tokenInDb) { return res.status(409).send({ error: 'Token must be unique' }) }
 
 		const content = await db.Content.create({
 			walletId: req.address,
@@ -103,8 +102,7 @@ router.post('/', auth, async (req, res) => {
 		req.logger.log({ level: 'info', message: `Address: ${req.address} creating content`});
 		res.status(200).send({ content })
 	} catch (error) {
-		req.logger.log({ level: 'error', message: error });
-		res.status(500).send({ error })
+		next(new Error(error))
 	}
 })
 
@@ -113,16 +111,16 @@ router.post('/', auth, async (req, res) => {
  * @summary Updates specific content object
  * @param {object} req The Express request object
  * @param {object} res The Express response object
- * @throws {object} - 401 Missing title
+ * @throws {object} - 400 Missing title
  * @throws {object} - 500 Server Error
  * @return {object} - 200 Updates record and returns updated record
  */
 
-router.put('/:contentId', auth, async (req, res) => {
+router.put('/:contentId', auth, async (req, res, next) => {
 	const contentId = req.params.contentId;
 	const { title, description, isPublic } = req.body.content;
 
-	if (!title) { return res.status(401).send({ error: 'Missing title' }) }
+	if (!title) { return res.status(400).send({ error: 'Missing title' }) }
 
 	try {
 		const [row, content] = await db.Content.update({
@@ -139,8 +137,7 @@ router.put('/:contentId', auth, async (req, res) => {
 		req.logger.log({ level: 'info', message: `Address: ${req.address} updating content: ${contentId}`});
 		res.status(200).send({ content })
 	} catch (error) {
-		req.logger.log({ level: 'error', message: error });
-		res.status(500).send({ error })
+		next(new Error(error))
 	}
 })
 

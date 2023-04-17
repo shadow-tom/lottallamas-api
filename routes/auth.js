@@ -44,7 +44,7 @@ async function getWalletBalance(address) {
  * @throws {object} - 500 Server Error
  */
 
-router.post('/validate-wallet', verifyWalletBodyParams, async (req, res) => {
+router.post('/validate-wallet', verifyWalletBodyParams, async (req, res, next) => {
 	try {
 		const { address, signature, message } = req.body;
 		const verified = new Message(message).verify(address, signature);
@@ -63,8 +63,7 @@ router.post('/validate-wallet', verifyWalletBodyParams, async (req, res) => {
 			res.status(404).send({ error: 'Invalid Message' })
 		}
 	} catch(error) {
-		req.logger.log({ level: 'error', message: error });
-		res.status(500).send({ error });
+		next(new Error(error))
 	}
 });
 
@@ -78,7 +77,7 @@ router.post('/validate-wallet', verifyWalletBodyParams, async (req, res) => {
  */
 
 // TODO: Build out the create endpoint
-router.post('/create-account', auth, async (req, res) => {
+router.post('/create-account', auth, async (req, res, next) => {
 	try {
 		const account = await db.Wallet.create({
 			id: req.address,
@@ -87,7 +86,7 @@ router.post('/create-account', auth, async (req, res) => {
 
 		res.status(200).send({ account })
 	} catch (error) {
-		res.status(500).send({ error });
+		next(new Error(error))
 	}
 })
 
