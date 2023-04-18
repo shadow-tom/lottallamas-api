@@ -17,6 +17,7 @@
     "bitcore-lib": "^8.25.40",
     "cors": "^2.8.5",
     "express": "^4.18.2",
+    "helmet": "^6.1.5",
     "jsonwebtoken": "^8.5.1",
     "multiformats": "^9.9.0",
     "nodemon": "^2.0.20",

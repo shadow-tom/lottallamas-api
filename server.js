@@ -1,6 +1,8 @@
 import express from 'express'
 import * as Sentry from "@sentry/node";
 import cors from 'cors'
+import helmet from 'helmet'
+
 const app = express()
 
 import auth from './routes/auth.js'
@@ -31,16 +33,28 @@ Sentry.init({
 	  // for finer control
 	  tracesSampleRate: 1.0,
 });
-  
+
 // RequestHandler creates a separate execution context using domains, so that every
 // transaction/span/breadcrumb is attached to its own Hub instance
 app.use(Sentry.Handlers.requestHandler());
 // TracingHandler creates a trace for every incoming request
 app.use(Sentry.Handlers.tracingHandler());
 
-app.use(cors({
-    origin: '*'
-}));
+app.use(helmet());
+
+var whitelist = ['https://lottallamas.com', 'http://localhost:4200']
+
+var corsOptions = {
+	origin: function (origin, callback) {
+		if (whitelist.indexOf(origin) !== -1) {
+			callback(null, true)
+		} else {
+			callback(new Error('Not allowed by CORS'))
+		}
+	}
+}
+
+app.use(cors(corsOptions));
 
 // Logging middleware
 app.use((req, res, next) => {
