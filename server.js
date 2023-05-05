@@ -2,6 +2,12 @@ import express from 'express'
 import * as Sentry from "@sentry/node";
 import cors from 'cors'
 import helmet from 'helmet'
+import { S3 } from "@aws-sdk/client-s3";
+import process from 'node:process';
+
+const env = process.env.NODE_ENV || 'development';
+
+import config from './config/config.json' assert { type: 'json' };
 
 const app = express()
 
@@ -11,9 +17,21 @@ import wallets from './routes/auth/wallets.js'
 import content from './routes/auth/content.js'
 import posts from './routes/auth/posts.js'
 import comments from './routes/auth/comments.js'
+import media from './routes/auth/media.js'
 import winston from 'winston'
 
 const port = 3100
+
+const s3Client = new S3({
+	forcePathStyle: false, // Configures to use subdomain/virtual calling format.
+	endpoint: "https://nyc3.digitaloceanspaces.com",
+	region: "us-east-1",
+	rejectUnauthorized: false,
+	credentials: {
+		accessKeyId: config[env].s3.key,
+		secretAccessKey: config[env].s3.secret
+	}
+});
 
 Sentry.init({
 	dsn: "https://d6f04ce1954d4d2eb1db1dadc5360949@o4505004650463232.ingest.sentry.io/4505008298196993",
@@ -42,6 +60,11 @@ app.use(Sentry.Handlers.tracingHandler());
 
 app.use(helmet());
 
+app.use((req, res, next) => {
+	req.s3Client = s3Client;
+	next();
+})
+
 var whitelist = ['https://lottallamas.com', 'http://localhost:4200']
 
 var corsOptions = {
@@ -54,7 +77,7 @@ var corsOptions = {
 	}
 }
 
-app.use(cors(corsOptions));
+app.use(cors({ origin: '*'}));
 
 // Logging middleware
 app.use((req, res, next) => {
@@ -96,6 +119,7 @@ app.use('/api/content', content);
 app.use('/api/posts', posts);
 app.use('/api/public', publicContent);
 app.use('/api/comments', comments);
+app.use('/api/media', media);
 
 if (process.env.NODE_ENV !== 'test') {
 	app.use(Sentry.Handlers.errorHandler());
