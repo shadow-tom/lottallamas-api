@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router()
-import db from '@lotta-llamas/models';
+import db from '../../models/index.js'
 import { validate as uuidValidate } from 'uuid';
 
 /**

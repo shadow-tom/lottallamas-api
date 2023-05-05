@@ -4,7 +4,7 @@ ENV NODE_ENV=development
 
 RUN mkdir var/llamas var/llamas/api var/llamas/api/config
 
-VOLUME [ "/Users/eats/Desktop/projects/Llamas/lottallamas-api:/var/llamas/api" ]
+VOLUME [ "/Users/eats/Desktop/projects/Llamas/lottallamas-api:/var/llamas/api", "/Users/eats/Desktop/projects/Llamas/lottallamas-models:/var/llamas/models" ]
 
 WORKDIR /var/llamas/api
 

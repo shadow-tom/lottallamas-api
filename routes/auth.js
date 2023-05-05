@@ -7,7 +7,7 @@ import pkg from 'bitcore-lib';
 const { Message } = pkg;
 import https from 'https';
 
-import db from '@lotta-llamas/models'
+import db from '../../models/index.js'
 
 /**
  * Get all tokens within wallet
