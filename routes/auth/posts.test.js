@@ -1,7 +1,7 @@
 import app from '../../server.js'
 import request from 'supertest'
 import { test } from '@jest/globals';
-import db from '@lotta-llamas/models';
+import db from '../../../models/index.js'
 
 const testWallet1 = {
 	address: '14GRxZmNCLHo5Uknr2XYnGA61Hh9uMULXV',

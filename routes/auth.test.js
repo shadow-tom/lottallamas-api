@@ -2,7 +2,7 @@ import app from '../server.js'
 import request from 'supertest'
 import jwt from 'jsonwebtoken'
 import { test } from '@jest/globals';
-import db from '@lotta-llamas/models';
+import db from '../../models/index.js'
 
 const wallet = {
 	address: '19h8nvZWqzpZnEufu611ZG6uZ5jYN1tytn',
