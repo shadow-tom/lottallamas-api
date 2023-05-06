@@ -121,6 +121,12 @@ app.use('/api/public', publicContent);
 app.use('/api/comments', comments);
 app.use('/api/media', media);
 
+app.use((req, res, next) => {
+	console.log('testoin?')
+	next()
+})
+
+
 if (process.env.NODE_ENV !== 'test') {
 	app.use(Sentry.Handlers.errorHandler());
 	app.listen(port, () => {
