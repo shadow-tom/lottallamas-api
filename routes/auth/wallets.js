@@ -1,7 +1,6 @@
 import express from 'express';
 const router = express.Router()
 import auth from '../../middleware/auth.js'
-import db from '../../../models/index.js'
 
 router.get('/:walletId', auth, async (req, res, next) => {
 	try {

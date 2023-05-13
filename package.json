@@ -13,6 +13,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.317.0",
     "@babel/preset-env": "^7.19.4",
+	"@lotta-llamas/models": "^1.0.7",
     "@sentry/node": "^7.47.0",
     "bitcore-lib": "^8.25.40",
     "cors": "^2.8.5",

@@ -1,7 +1,7 @@
 import app from '../server.js'
 import request from 'supertest'
 import { test } from '@jest/globals'
-import db from '../../models/index.js'
+import db from '@lotta-llamas/models';
 
 describe('GET - All Public Posts', () => {
 	test('200 - Return empty if no records are public', async () => {

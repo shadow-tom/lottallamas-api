@@ -1,6 +1,6 @@
 import app from '../../server.js'
 import request from 'supertest'
-import db from '../../../models/index.js'
+import db from '@lotta-llamas/models';
 import { jest, test } from '@jest/globals';
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { S3 } from "@aws-sdk/client-s3";

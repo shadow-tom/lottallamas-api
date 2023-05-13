@@ -2,8 +2,7 @@ import express from 'express';
 const router = express.Router()
 import multer from 'multer'
 import auth from '../../middleware/auth.js'
-// import db from '@lotta-llamas/models';
-import db from '../../../models/index.js'
+import db from '@lotta-llamas/models';
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 
 const IMAGE_PROFILES = {
