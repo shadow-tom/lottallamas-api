@@ -1,111 +1,80 @@
 import express from 'express';
 const router = express.Router()
-
-import { GetObjectCommand, ListObjectsCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-
+import multer from 'multer'
 import auth from '../../middleware/auth.js'
 // import db from '@lotta-llamas/models';
 import db from '../../../models/index.js'
-// import { validate as uuidValidate } from 'uuid';
-import multer from 'multer'
-import { v4 as uuidv4 } from 'uuid';
+import { PutObjectCommand } from "@aws-sdk/client-s3";
 
+const IMAGE_PROFILES = {
+	post: {
+		height: 300,
+		width: 400,
+		maxSize: 15728640
+	},
+	avatar: {
+		height: 48,
+		width: 48,
+		maxSize: 15728640
+	},
+	content: {
+		height: 150,
+		width: 150,
+		maxSize: 15728640
+	}
+}
 
-const filefilter = (req, file, cb) => {
+const fileFilter = (req, file, cb) => {
     // Accept images only
     if (!file.originalname.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF|webp|WEBP)$/)) {
-        req.fileValidationError = 'Only jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF|webp|WEBP file type are allowed!';
-        return cb(new Error('Only jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF|webp|WEBP file type  are allowed!'), false);
+        return cb(new Error('Only jpeg, png, gif, or webp files allowed, please'), false);
     }
     return cb(null, true);
 }
 
 const storage = multer.memoryStorage()
 
-const upload = multer({ storage: storage, fileFilter: filefilter })
+const upload = multer({ storage, fileFilter }).single('file')
 
-router.post('/', auth, upload.single('file'), async (req, res, next) => {
-    try {
-        console.log(req.file.size)
-        // 15MB size limit
-        if (req.file.size > 15728640) {
-            return res.status(401).send({ error: 'No images larger than 15MB, please' })
-        }
+router.post('/images', auth, function (req, res, next) {
+	upload(req, res, async (err) => {
 
-        // create media record
-        const media = await db.Media.create({
-            walletId: req.address,
-            usage: 'post',
-            isDeleted: false,
-            isPublic: true,
-        })
+		const imageType = req.query.type && Object.keys(IMAGE_PROFILES).includes(req.query.type) ? req.query.type : 'post';
 
-        // upload image to spaces
-        const data = await req.s3Client.send(new PutObjectCommand({
-            Bucket: 'lottallamas-media',
-            Key: `images/${media.id}`,
-            Body: req.file.buffer,
-            ACL: 'public-read',
-            ContentType: 'image/png'
-        }));
-        console.log(req.file)
-        return res.status(200).send('ok')
-    } catch (error) {
-        next(new Error(error))
-    }
+		if (err && err.message) {
+			return res.status(415).send({ error: err.message })
+		}
+
+		try {
+			// Filter out large images
+			if (req.file.size > IMAGE_PROFILES[imageType].maxSize) {
+				return res.status(415).send({ error: 'No images larger than 15MB, please' })
+			}
+	
+			// create media record
+			const media = await db.Media.create({
+				walletId: req.address,
+				usage: imageType,
+				isDeleted: false,
+				isPublic: true,
+			})
+	
+			// upload image to DO spaces:
+			// https://lottallamas-media.nyc3.digitaloceanspaces.com
+			await req.s3Client.send(new PutObjectCommand({
+				Bucket: 'lottallamas-media',
+				Key: `images/${media.id}-${imageType}`,
+				Body: req.file.buffer,
+				ACL: 'public-read',
+				ContentType: 'image/jpg'
+			}));
+	
+			return res.status(200).send({ media })
+		} catch (error) {
+			next(new Error(error))
+		}
+	})
 })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-const streamToString = (stream) => {
-    const chunks = [];
-    return new Promise((resolve, reject) => {
-        stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
-        stream.on('error', (err) => reject(err));
-        stream.on('end', () => resolve(Buffer.concat(chunks).toString('base64')));
-    });
-};
-
-
-router.get('/', async (req, res, next) => {
-    const data = await req.s3Client.send(new ListObjectsCommand({ Bucket: 'lottallamas-media' }));
-    return res.status(200).send(data)
-})
-
-router.get('/:image_id', async (req, res, next) => {
-    try {
-        // const { imageId } = req.params.image_id;
-
-        // if (!imageId) { return res.status(400).send('Missing image id') }
-
-        const bucketParams = {
-            Bucket: 'lottallamas-media',
-            Key: 'images/test.png'
-        };
-  
-        const response = await req.s3Client.send(new GetObjectCommand(bucketParams));
-        const data = await streamToString(response.Body);
-        res.writeHead(200, {'Content-Type': 'image/jpeg'});
-        res.end(data, 'binary');
-    
-      } catch (error) {
-        next(new Error(error))
-    }
-
-    // return res.status(200).send(data)
-})
-
 
 export default router;
 
