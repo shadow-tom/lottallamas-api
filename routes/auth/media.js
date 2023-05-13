@@ -50,11 +50,13 @@ router.post('/images', auth, function (req, res, next) {
 			if (req.file.size > IMAGE_PROFILES[imageType].maxSize) {
 				return res.status(415).send({ error: 'No images larger than 15MB, please' })
 			}
-	
+
 			// create media record
 			const media = await db.Media.create({
 				walletId: req.address,
 				usage: imageType,
+				originalname: req.file.originalname,
+				mimetype: req.file.mimetype,
 				isDeleted: false,
 				isPublic: true,
 			})
@@ -66,7 +68,7 @@ router.post('/images', auth, function (req, res, next) {
 				Key: `images/${media.id}-${imageType}`,
 				Body: req.file.buffer,
 				ACL: 'public-read',
-				ContentType: 'image/jpg'
+				ContentType: req.file.mimetype
 			}));
 	
 			return res.status(200).send({ media })
